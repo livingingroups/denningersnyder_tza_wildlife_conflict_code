@@ -5,6 +5,12 @@ require(lubridate)
 require(RColorBrewer)
 library(janitor)
 
+# library(lme4)
+# vv <- glmer(conflict ~ (1|ethnicity) , data=hw , family="binomial")
+# vv <- glmer(conflict ~ born + (1|village) + (1+born|species), data=hw , family="binomial")
+# vv <- glmer(conflict ~ mon + (1|village) + (1+born|species), data=hw , family="binomial")
+# ranef(vv)
+# summary(vv)
 
 # hw <- read.csv("~/Downloads/SS_Final_NoDups.csv") #old version with errorz
 #hw <- read.csv("~/Downloads/Spatial_Household_Survey_Clean_1Jun20sp.csv") 
@@ -489,6 +495,101 @@ for (i in 1:2){
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+}
+
+
+mc12 <- ulam(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <- av[village_index] + as[species_index] + b_HHs[species_index]*household_size_std + (b_FSs[species_index] + b_HHxFSs[species_index]*household_size_std )*farm_size_std,
+    a ~ normal( 0 , 1 ),
+    c(b_HH,b_FS,b_HHxFS) ~ normal( 0 , 0.5 ),
+    av[village_index] ~ dnorm(a,sigma_v),
+    c(as,b_HHs,b_FSs,b_HHxFSs)[species_index] ~ multi_normal( c(a,b_HH,b_FS,b_HHxFS) , Rho , sigma_s),
+    c(sigma_v,sigma_s) ~ dexp(1),
+    Rho ~ lkj_corr(3)
+    
+  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE )
+
+precis(mc12, depth=3)
+
+#sort(unique(dc$household_size_std))
+#sort(unique(dc$household_size))
+plot_seq <- seq(from=min(dc$farm_size_std) , to=max(dc$farm_size_std) , length=30)
+colpal1=brewer.pal(6,"Blues")
+colpal2=brewer.pal(6,"Greens")
+
+for (i in 1:2){
+    for(j in -1:4){
+    dpred <- list(
+      village_index=rep(1,30),
+      farm_size_std=plot_seq,
+      species_index=rep(i,30),
+      household_size_std=rep(j , 30) 
+      #3.91968493  25
+    )
+    
+    link2 <- link(mc12, data=dpred , replace=list(village_index=av_z) )
+    
+    if(i==1 & j==-1){plot(dc$baboon_c ~ dc$farm_size_std, col=col.alpha(colpal1[j+2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size standardized")}
+
+    if(i==2 & j==-1){plot(dc$elephant_c ~ dc$farm_size_std , col=col.alpha(colpal2[j+2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size standardized")
+ }
+
+      pred_mean <- apply(link2 , 2 , mean)
+      lines(pred_mean ~ plot_seq , lw=2, col=colpal1[j+2] , lty=1)
+    # for (j in sample( c(1:1000) , 100) ){
+    #   lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    # }
+    }
+}
+
+
+mc13 <- ulam(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <- av[village_index] + as[species_index] + b_GuardS[species_index]*guard_ave_day_std + (b_FSs[species_index] + b_GuardxFSs[species_index]*guard_ave_day_std)*farm_size_std,
+    a ~ normal( 0 , 1 ),
+    c(b_Guard,b_FS,b_GuardxFS) ~ normal( 0 , 0.5 ),
+    av[village_index] ~ dnorm(a,sigma_v),
+    c(as,b_GuardS,b_FSs,b_GuardxFSs)[species_index] ~ multi_normal( c(a,b_Guard,b_FS,b_GuardxFS) , Rho , sigma_s),
+    c(sigma_v,sigma_s) ~ dexp(1),
+    Rho ~ lkj_corr(4)
+    
+  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE )
+
+precis(mc12, depth=3)
+
+#sort(unique(dc$household_size_std))
+#sort(unique(dc$household_size))
+plot_seq <- seq(from=min(dc$farm_size_std) , to=max(dc$farm_size_std) , length=30)
+colpal1=brewer.pal(5,"Blues")
+colpal2=brewer.pal(5,"Greens")
+
+for (i in 1:2){
+  for(j in 1:4){
+    dpred <- list(
+      village_index=rep(1,30),
+      farm_size_std=plot_seq,
+      species_index=rep(i,30),
+      guard_ave_day_std=rep(sort(unique(dc$guard_ave_day_std))[j] , 30) 
+      #3.91968493  25
+    )
+    
+    link2 <- link(mc13, data=dpred , replace=list(village_index=av_z) )
+    
+    if(i==1 & j==1){plot(dc$baboon_c ~ dc$farm_size_std, col=col.alpha(colpal1[j+2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size standardized")}
+    
+    if(i==2 & j==1){plot(dc$elephant_c ~ dc$farm_size_std , col=col.alpha(colpal2[j+2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size standardized")}
+    
+    pred_mean <- apply(link2 , 2 , mean)
+    if(i==1) {lines(pred_mean ~ plot_seq , lw=2, col=colpal1[j] , lty=1)}
+    if(i==2) {lines(pred_mean ~ plot_seq , lw=2, col=colpal2[j] , lty=1)}
+    
+    # for (j in sample( c(1:1000) , 100) ){
+    #   lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    # }
   }
 }
 
@@ -1047,7 +1148,6 @@ for (i in 1:2){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
 }
-
 
 
 
