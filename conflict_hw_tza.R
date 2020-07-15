@@ -1216,7 +1216,7 @@ mc16 <- ulam(
   ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
 
 
-
+############################global########################
 
 
 compare(mc0,mc1,mc2,mc3,mc4,mc5,mc6,mc7,mc8,mc9,mc10,mc11,mc13,mc14,mc15,mc16)
