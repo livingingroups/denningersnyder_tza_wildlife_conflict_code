@@ -2466,49 +2466,6 @@ for (i in 1:2){
   }
 }
 
-
-########guard ave day int
-ml13.1 <- ulam(
-  alist(
-    conflict  ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index]  + b_LSHs[species_index]*log_livestock_head_std + (b_GUs[species_index] + b_GUxLSHs[species_index]*log_livestock_head_std)*guard_ave_day_std ,
-    a ~ normal( 0 , 1 ),
-    c(b_LSH,b_GU ,b_GUxLSH) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_LSHs,b_GUs,b_GUxLSHs)[species_index] ~ multi_normal( c(a,b_LSH,b_GU,b_GUxLSH) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
-
-plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=30)
-colpal1=brewer.pal(5,"Blues")
-colpal2=brewer.pal(5,"Greens")
-
-sort(unique(dl$guard_ave_day_std))
-sort(unique(dl$guard_ave_day))
-
-for (i in 1:2){
-  for(j in 1:5){
-    dpred <- list(
-      village_index=rep(1,30),
-      livestock_head_std=plot_seq,
-      species_index=rep(i,30),
-      #household_size_std=rep(j , 30) 
-      guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , 30) 
-    )
-    
-    link2 <- link(ml13.1, data=dpred , replace=list(village_index=av_z) )
-    
-    if(i==1 & j==1){plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal1[j+2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log livestock head standardized")}
-    
-    if(i==2 & j==1){plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal2[j+2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="loglivestock head standardized")
-    }
-    
-    pred_mean <- apply(link2 , 2 , mean)
-    lines(pred_mean ~ plot_seq , lw=2, col=colpal1[j] , lty=1)
-  }
-}
-
 #######house level
 ml14 <- ulam(
   alist(
@@ -2806,5 +2763,367 @@ ml16.1 <- ulam(
     
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
 
+#########SDistance
+
+plot_seq <- seq(from=min(dl$settle_dist_km_std) , to=max(dl$settle_dist_km_std) , length=30)
+av_z <- matrix(0,1000,length(unique(dl$village_index))) #need to add zeros in VE to plot main effect
+
+ylabels=c("probability hyena livestock conflict" , "probability lion livestock conflict")
+colpal=c("red" , "orange")
+for (i in 1:2){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    settle_dist_km_std=plot_seq,
+    c70_std=rep(0,30),
+    road_std=rep(0,30),
+    build_dens_std=rep(0,30),
+    gse_slope30m_std=rep(0,30),
+    livestock_head_std=rep(0,30),
+    species_index=rep(i,30),
+    household_size_std=rep(0,30), 
+    guard_ave_day_std=rep(0,30), 
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "settle_dist_livestock_global_conflict_hyena.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="standardized km from settlement")}
+  if(i==2){
+    pdf(file = "settle_dist_livestock_global_conflict_lion.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="standardized km from settlement")}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  dev.off()
+}
+
+######cover 70
+plot_seq <- seq(from=min(dl$c70_std) , to=max(dl$c70_std) , length=30)
+av_z <- matrix(0,1000,length(unique(dl$village_index))) #need to add zeros in VE to plot main effect
+
+ylabels=c("probability hyena livestock conflict" , "probability lion livestock conflict")
+for (i in 1:2){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    settle_dist_km_std=rep(0,30),
+    c70_std=plot_seq,
+    c2070_std=rep(0,30),
+    river_std=rep(0,30),
+    road_std=rep(0,30),
+    build_dens_std=rep(0,30),
+    gse_slope30m_std=rep(0,30),
+    livestock_head_std=rep(0,30),
+    species_index=rep(i,30),
+    household_size_std=rep(0,30), 
+    guard_ave_day_std=rep(0,30), 
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "c70_livestock_global_conflict_hyena.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$c70_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density (standardized)")}
+  if(i==2){
+    pdf(file = "c70_livestock_global_conflict_lion.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density (standardized)")}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  dev.off()
+}
 
 
+########road
+
+plot_seq <- seq(from=min(dl$road_std) , to=max(dl$road_std) , length=30)
+
+for (i in 1:2){
+  
+  dpred <- list(
+
+    village_index=rep(1,30),
+    settle_dist_km_std=rep(0,30),
+    c70_std=rep(0,30),
+    c2070_std=rep(0,30),
+    river_std=rep(0,30),
+    road_std=plot_seq,
+    build_dens_std=rep(0,30),
+    gse_slope30m_std=rep(0,30),
+    livestock_head_std=rep(0,30),
+    species_index=rep(i,30),
+    household_size_std=rep(0,30), 
+    guard_ave_day_std=rep(0,30), 
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "road_livestock_global_conflict_hyena.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$road_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="road density standardized")}
+  if(i==2){
+    pdf(file = "road_livestock_global_conflict_lion.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$road_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="road density standardized")}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  dev.off()
+}
+
+#buiding density
+
+plot_seq <- seq(from=min(dl$build_dens_std) , to=max(dl$build_dens_std) , length=30)
+
+for (i in 1:2){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    build_dens_std=plot_seq,
+    settle_dist_km_std=rep(0,30),
+    c70_std=rep(0,30),
+    c2070_std=rep(0,30),
+    river_std=rep(0,30),
+    road_std=rep(0,30),
+    gse_slope30m_std=rep(0,30),
+    livestock_head_std=rep(0,30),
+    species_index=rep(i,30),
+    household_size_std=rep(0,30), 
+    guard_ave_day_std=rep(0,30), 
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "build_dens_livestock_global_conflict_hyena.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$build_dens_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density standardized")}
+  if(i==2){
+    pdf(file = "build_dens_livestock_global_conflict_lion.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$build_dens_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density standardized")}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  dev.off()
+}
+
+##slope
+plot_seq <- seq(from=min(dl$gse_slope30m_std) , to=max(dl$gse_slope30m_std) , length=30)
+
+for (i in 1:2){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    gse_slope30m_std=plot_seq,
+    build_dens_std=rep(0,30),
+    settle_dist_km_std=rep(0,30),
+    c70_std=rep(0,30),
+    c2070_std=rep(0,30),
+    river_std=rep(0,30),
+    road_std=rep(0,30),
+    livestock_head_std=rep(0,30),
+    species_index=rep(i,30),
+    household_size_std=rep(0,30), 
+    guard_ave_day_std=rep(0,30), 
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "slope30m_livestock_global_conflict_hyena.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$gse_slope30m_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m standardized")}
+  if(i==2){
+    pdf(file = "slope30m_livestock_global_conflict_lion.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$gse_slope30m_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m standardized")}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  dev.off()
+}
+
+###livestock head
+plot_seq <- seq(from=min(dl$livestock_head_std) , to=max(dl$livestock_head_std) , length=30)
+
+for (i in 1:2){
+  dpred <- list(
+    village_index=rep(1,30),
+    livestock_head_std=plot_seq,
+    gse_slope30m_std=rep(0,30),
+    build_dens_std=rep(0,30),
+    settle_dist_km_std=rep(0,30),
+    c70_std=rep(0,30),
+    c2070_std=rep(0,30),
+    river_std=rep(0,30),
+    road_std=rep(0,30),
+    species_index=rep(i,30),
+    household_size_std=rep(0,30), 
+    guard_ave_day_std=rep(0,30), 
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "livestock head_livestock_global_conflict_hyena.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$livestock_head_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")}
+  if(i==2){
+    pdf(file = "livestock head_livestock_global_conflict_lion.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$livestock_head_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  dev.off()
+}
+
+########hhsize######3
+
+plot_seq <- seq(from=min(dl$household_size_std) , to=max(dl$household_size_std) , length=30)
+
+for (i in 1:2){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    household_size_std=plot_seq,
+    livestock_head_std=rep(0,30),
+    gse_slope30m_std=rep(0,30),
+    build_dens_std=rep(0,30),
+    settle_dist_km_std=rep(0,30),
+    c70_std=rep(0,30),
+    c2070_std=rep(0,30),
+    river_std=rep(0,30),
+    road_std=rep(0,30),
+    species_index=rep(i,30),
+    guard_ave_day_std=rep(0,30), 
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "household_size_livestock_global_conflict_hyena.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$household_size_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size standardized")}
+  if(i==2){
+    pdf(file = "household_size_livestock_global_conflict_lion.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$household_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size standardized")}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  dev.off()
+}
+
+##num guards
+plot_seq <- seq(from=min(dl$guard_ave_day_std) , to=max(dl$guard_ave_day_std) , length=30)
+
+for (i in 1:2){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    guard_ave_day_std=plot_seq,
+    household_size_std=rep(0,30),
+    livestock_head_std=rep(0,30),
+    gse_slope30m_std=rep(0,30),
+    build_dens_std=rep(0,30),
+    settle_dist_km_std=rep(0,30),
+    c70_std=rep(0,30),
+    c2070_std=rep(0,30),
+    river_std=rep(0,30),
+    road_std=rep(0,30),
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "num_guards_livestock_global_conflict_hyena.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$guard_ave_day_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="average number of guards per day standardized")}
+  if(i==2){
+    pdf(file = "num_guards_livestock_global_conflict_lion.pdf",   width = 5, height = 5) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$guard_ave_day_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="average number of guards per day standardized")}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  dev.off()
+}
+
+###interaction between num guards and livestock size
+plot_seq <- seq(from=min(dl$livestock_head_std) , to=max(dl$livestock_head_std) , length=30)
+
+for (i in 1:2){
+  for(j in 1:5){
+    
+    dpred <- list(
+      village_index=rep(1,30),
+      livestock_head_std=plot_seq,
+      species_index=rep(i,30),
+      household_size_std=rep(0,30), 
+      guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , 30),
+      gse_slope30m_std=rep(0,30),
+      build_dens_std=rep(0,30),
+      settle_dist_km_std=rep(0,30),
+      c70_std=rep(0,30),
+      c2070_std=rep(0,30),
+      road_std=rep(0,30),
+      species_index=rep(i,30),
+      guard_ave_day_std=rep(0,30)
+    )
+    
+    link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+    
+    if(i==1){plot(dl$hyena_l ~ dl$livestock_head_std, col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")
+      title(main=paste("num. guards = ", j-1) )
+      pred_mean <- apply(link2 , 2 , mean)
+      lines(pred_mean ~ plot_seq , lw=2, col=colpal1[j] , lty=1)
+      for (k in sample( c(1:1000) , 100) ){
+        lines( link2[k,] ~ plot_seq , lw=3, col=col.alpha(colpal1[j], alpha=0.1) , lty=1)
+      }
+    }
+    
+    if(i==2){
+      plot(dl$lion_l ~ dl$livestock_head_std , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")
+      title(main=paste("num. guards = ", j-1) )
+      pred_mean <- apply(link2 , 2 , mean)
+      lines(pred_mean ~ plot_seq , lw=2, col=colpal2[j] , lty=1)
+      for (k in sample( c(1:1000) , 100) ){
+        lines( link2[k,] ~ plot_seq , lw=3, col=col.alpha(colpal2[j], alpha=0.1) , lty=1)
+      }
+    }
+    
+  }
+}
