@@ -1404,7 +1404,7 @@ mc17 <- ulam(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.99))
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.999))
 
 
 
@@ -2740,7 +2740,7 @@ ml16 <- ulam(
     
   ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
 
-##########global mofo restrict old and remove night pen and an interaction, needs more iterations
+##########global mofo livestock
 ml16.1 <- ulam(
   alist(
     conflict ~ binomial(1,p),
@@ -2761,7 +2761,7 @@ ml16.1 <- ulam(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
+  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,  control=list(adapt_delta=0.999))
 
 #########SDistance
 
@@ -3127,3 +3127,102 @@ for (i in 1:2){
     
   }
 }
+
+plot(precis(ml16.1 , depth=1))
+plot(precis(ml16.1 , depth=2 ,pars=c('b_SLs' , 'b_BDs' , 'b_RDs' , 'b_C70s' ,'b_SDs' , 'b_GUxLSH ' ,'b_GU ' , 'b_HH ' , 'b_LSH')))
+
+##########################################
+#############raster preds################
+#########################################
+###############baboons
+ras_bab<-  read.csv("~/Dropbox/tza_wildlife_conflict/baboonRasterstacktopoints_survext.csv")
+
+ras_bab$settle_dist_km <- ras_bab$settle_dist/1000
+ras_bab$crop_std <- (ras_bab$crop-mean(dc$crop) )/sd(dc$crop) 
+ras_bab$c70_std <- (ras_bab$c70 -mean(dc$c70 ) )/ sd(dc$c70 ) 
+ras_bab$c2070_std <- (ras_bab$c2070 -mean(dc$c2070 ) )/ sd(dc$c2070 ) 
+ras_bab$river_std <- (ras_bab$river -mean(dc$river ) )/ sd(dc$river) 
+ras_bab$road_std <- (ras_bab$road -mean(dc$road ) )/ sd(dc$road) 
+ras_bab$build_dens_std <- (ras_bab$build_dens-mean(dc$build_dens ) )/ sd(dc$build_dens) 
+ras_bab$settle_dist_km_std <- (ras_bab$settle_dist_km-mean(dc$settle_dist_km ) )/ sd(dc$settle_dist_km) 
+ras_bab$species_index <- 1
+
+p <- extract.samples(mc17)
+
+
+dpred <- list(
+  village_index=rep(1,nrow(ras_bab)),
+  settle_dist_km_std=ras_bab$settle_dist_km_std,
+  c70_std = ras_bab$c70_std,
+  c2070_std = ras_bab$c2070_std,
+  river_std= ras_bab$river_std,
+  road_std= ras_bab$road_std,
+  build_dens_std=ras_bab$build_dens_std,
+  crop_std= ras_bab$crop_std,
+  household_size_std=rep(0,nrow(ras_bab)),
+  farm_size_std=rep(0,nrow(ras_bab)),
+  months_planted_std=rep(0,nrow(ras_bab)),
+  see_field=rep(mean(dc$see_field),nrow(ras_bab)),
+  species_index=ras_bab$species_index
+)
+
+##note this is with other variables at mean, excluded b/c standardized so mean in 0, conputationally kwiker
+ras_bab$pred_bab_crop_conflict <- logistic( mean(p$a + p$as[,1]) + 
+                                              mean(p$b_SD + p$b_SDs[,1])*dpred$settle_dist_km_std  + 
+                                              mean(p$b_C70 + p$b_C70s[,1])*dpred$c70_std +
+                                              mean(p$b_C2070 + p$b_C2070s[,1])*dpred$c2070_std +
+                                              mean(p$b_BD + p$b_BDs[,1])*dpred$build_dens_std +
+                                              mean(p$b_CRs + p$b_CRs[,1])*dpred$crop_std  + 
+                                              mean(p$b_SEEs + p$b_SEEs[,1])*dpred$see_field 
+)
+
+dens(ras_bab$pred_bab_crop_conflict)
+ras_bab_sub <- cbind( ras_bab[1:3] , ras_bab$pred_bab_crop_conflict)
+write.csv(ras_bab_sub , file="ras_baboon_crop_preds.csv")
+
+
+###elephants###################
+
+ras_ele<-  read.csv("~/Dropbox/tza_wildlife_conflict/elephantRasterstacktopoints_survext.csv")
+ras_ele$settle_dist_km <- ras_ele$settle_dist/1000
+ras_ele$crop_std <- (ras_ele$crop-mean(dc$crop) )/sd(dc$crop) 
+ras_ele$c70_std <- (ras_ele$c70 -mean(dc$c70 ) )/ sd(dc$c70 ) 
+ras_ele$c2070_std <- (ras_ele$c2070 -mean(dc$c2070 ) )/ sd(dc$c2070 ) 
+ras_ele$river_std <- (ras_ele$river -mean(dc$river ) )/ sd(dc$river) 
+ras_ele$road_std <- (ras_ele$road -mean(dc$road ) )/ sd(dc$road) 
+ras_ele$build_dens_std <- (ras_ele$build_dens-mean(dc$build_dens ) )/ sd(dc$build_dens) 
+ras_ele$settle_dist_km_std <- (ras_ele$settle_dist_km-mean(dc$settle_dist_km ) )/ sd(dc$settle_dist_km) 
+ras_ele$species_index <- 2
+
+p <- extract.samples(mc17)
+
+dpred <- list(
+    village_index=rep(1,nrow(ras_ele)),
+    settle_dist_km_std=ras_ele$settle_dist_km_std,
+    c70_std = ras_ele$c70_std,
+    c2070_std = ras_ele$c2070_std,
+    river_std= ras_ele$river_std,
+    road_std= ras_ele$road_std,
+    build_dens_std=ras_ele$build_dens_std,
+    crop_std= ras_ele$crop_std,
+    household_size_std=rep(0,nrow(ras_ele)),
+    farm_size_std=rep(0,nrow(ras_ele)),
+    months_planted_std=rep(0,nrow(ras_ele)),
+    see_field=rep(mean(dc$see_field),nrow(ras_ele)),
+    species_index=ras_ele$species_index
+  )
+  
+##note this is with other variables at mean, excluded b/c standardized so mean in 0, conputationally kwiker
+ras_ele$pred_ele_crop_conflict <-0
+ras_ele$pred_ele_crop_conflict <- logistic( mean(p$a + p$as[,2]) + 
+            mean(p$b_SD + p$b_SDs[,2])*dpred$settle_dist_km_std  + 
+            mean(p$b_C70 + p$b_C70s[,2])*dpred$c70_std +
+            mean(p$b_C2070 + p$b_C2070s[,2])*dpred$c2070_std +
+            mean(p$b_BD + p$b_BDs[,2])*dpred$build_dens_std +
+            mean(p$b_CRs + p$b_CRs[,2])*dpred$crop_std  + 
+            mean(p$b_SEEs + p$b_SEEs[,2])*dpred$see_field 
+)
+dens(ras_ele$pred_ele_crop_conflict)
+ras_ele_sub <- cbind( ras_ele[1:3] , ras_ele$pred_ele_crop_conflict)
+write.csv(ras_ele_sub , file="ras_elephant_crop_preds.csv")
+
