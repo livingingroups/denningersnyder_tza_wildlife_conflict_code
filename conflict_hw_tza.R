@@ -3226,3 +3226,41 @@ dens(ras_ele$pred_ele_crop_conflict)
 ras_ele_sub <- cbind( ras_ele[1:3] , ras_ele$pred_ele_crop_conflict)
 write.csv(ras_ele_sub , file="ras_elephant_crop_preds.csv")
 
+######to catch a predator############
+ras_leo<-  read.csv("~/Dropbox/tza_wildlife_conflict/lionRasterstacktopoints_survext.csv")
+ras_leo$settle_dist_km <- ras_leo$settle_dist/1000
+ras_leo$c70_std <- (ras_leo$c70 -mean(dl$c70 ) )/ sd(dl$c70 ) 
+ras_leo$road_std <- (ras_leo$road -mean(dl$road ) )/ sd(dl$road) 
+ras_leo$build_dens_std <- (ras_leo$build_dens-mean(dl$build_dens ) )/ sd(dl$build_dens) 
+ras_leo$gse_slope30m_std <- (ras_leo$gse_slope30m-mean(dl$gse_slope30m) )/sd(dl$gse_slope30m) 
+ras_leo$settle_dist_km_std <- (ras_leo$settle_dist_km-mean(dl$settle_dist_km ) )/ sd(dl$settle_dist_km) 
+ras_leo$species_index <- 2
+
+p <- extract.samples(ml16.1)
+
+dpred <- list(
+  village_index=rep(1,nrow(ras_leo)),
+  settle_dist_km_std=ras_leo$settle_dist_km_std,
+  c70_std = ras_leo$c70_std,
+  road_std= ras_leo$road_std,
+  build_dens_std=ras_leo$build_dens_std,
+  gse_slope30m_std= ras_leo$gse_slope30m_st,
+  household_size_std=rep(0,nrow(ras_leo)),
+  livestock_head_std=rep(0,nrow(ras_leo)),
+  guard_ave_day_std=rep(0,nrow(ras_leo)),
+  species_index=ras_leo$species_index
+)
+
+ras_leo$pred_leo_crop_conflict <-0
+ras_leo$pred_leo_crop_conflict <- logistic( mean(p$a + p$as[,2]) + 
+                                              mean(p$b_SD + p$b_SDs[,2])*dpred$settle_dist_km_std  + 
+                                              mean(p$b_C70 + p$b_C70s[,2])*dpred$c70_std +
+                                              mean(p$b_RD + p$b_RDs[,2])*dpred$road_std +
+                                              mean(p$b_BD + p$b_BDs[,2])*dpred$build_dens_std +
+                                              mean(p$b_SLs + p$b_SLs[,2])*dpred$gse_slope30m_std   
+)
+
+dens(ras_leo$pred_leo_crop_conflict)
+
+ras_leo_sub <- cbind( ras_leo[1:3] , ras_leo$pred_leo_crop_conflict)
+write.csv(ras_leo_sub , file="ras_lion_deadstock_preds.csv")
