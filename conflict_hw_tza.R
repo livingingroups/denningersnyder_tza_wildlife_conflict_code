@@ -5,6 +5,36 @@ require(lubridate)
 require(RColorBrewer)
 library(janitor)
 
+# #########LIVESTOCK lions and hyenas
+# settle_dist_km_std   LS   b_SD 
+# household_size_std   HH   b_HH
+# gse_slope30m_std	 LS   b_SL
+# livestock_head_std   HH   b_LSH 
+# b_C70s               LS   b_C70
+# b_C2070s             LS   b_C2070
+# river_std			 LS   b_RIV
+# build_dens_std		 LS   b_BD
+# road_std			 LS   b_RD
+# guard_ave_day_std	 HH   b_GU
+# 
+# 
+# ############CROPS baboons and elephants 
+# settle_dist_km_std		LS    b_SD
+# farm_size_std			HH    b_FS
+# household_size_std		HH    b_HH
+# see_field 				HH    b_SEE
+# b_C70s      			LS    b_C70
+# b_C2070s				LS    b_C2070
+# river_std				LS    b_RIV
+# build_dens_std			LS    b_BD
+# road_std				LS    b_RD
+# months planted 			HH    b_MP
+# crop                    HH    b_CR
+# 
+# crop_prot               HH 
+
+
+
 # library(lme4)
 # vv <- glmer(conflict ~ (1|ethnicity) , data=hw , family="binomial")
 # vv <- glmer(conflict ~ born + (1|village) + (1+born|species), data=hw , family="binomial")
@@ -14,10 +44,9 @@ library(janitor)
 
 # hw <- read.csv("~/Downloads/SS_Final_NoDups.csv") #old version with errorz
 #hw <- read.csv("~/Downloads/Spatial_Household_Survey_Clean_1Jun20sp.csv") 
-hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuild.csv")
-#hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
+#hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuild.csv")
+hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
 
-hw[,42] <- ifelse(hw[,42] < 0 , 0 , hw[,42])
 hw[,43] <- ifelse(hw[,43] < 0 , 0 , hw[,43])
 hw[,44] <- ifelse(hw[,44] < 0 , 0 , hw[,44])
 hw[,45] <- ifelse(hw[,45] < 0 , 0 , hw[,45])
@@ -25,10 +54,11 @@ hw[,46] <- ifelse(hw[,46] < 0 , 0 , hw[,46])
 hw[,47] <- ifelse(hw[,47] < 0 , 0 , hw[,47])
 hw[,48] <- ifelse(hw[,48] < 0 , 0 , hw[,48])
 hw[,49] <- ifelse(hw[,48] < 0 , 0 , hw[,49])
+hw[,50] <- ifelse(hw[,50] < 0 , 0 , hw[,49])
 
 hw$guard_ave_day <- ifelse(hw$guard_ave_day < 0 , 0 , hw$guard_ave_day)
-hw$livestock_head <- hw[,42] + hw[,43] +hw[,44] + hw[,45] 
-hw$livestock_head_all <- hw[,42] + hw[,43] +hw[,44] + hw[,45] + hw[,46] +  hw[,47] +  hw[,48] 
+hw$livestock_head <- + hw[,43] +hw[,44] + hw[,45] + hw[,46]
+hw$livestock_head_all <- hw[,42] + hw[,43] +hw[,44] + hw[,45] + hw[,46] +  hw[,47] +  hw[,48] +  hw[,49] 
 
 hw[hw == "-2147483648"] <- "NA"
 
@@ -1879,6 +1909,9 @@ write.csv(WAICcropmods , file="WAICcropmodels.csv")
 #compare(mc12.1 , mc12.2, mc12.3, mc12.4, mc12.6 , mc12.7)
 
 
+WAICpredmods <-compare(ml1,ml2,ml3,ml4,ml5,ml6,ml7,ml8,ml9,ml10,ml11,ml13,ml14,ml14.1,ml15,ml16.1)
+write.csv(WAICpredmods , file="WAICpredmodels.csv")
+
 ##########################################################################
 ###########################LIVESTOCK DAMAGE############################
 ##########################################################################
@@ -2342,47 +2375,47 @@ for (i in 1:2){
 }
 
 #######crop prto stuff
-
-#contain and protect interact
-ml12 <- ulam(
-  alist(
-    conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_LPDGs[species_index]*lv_prot_day_guard + (b_LPNCs[species_index] + b_LPDGsxLPNCs[species_index]*lv_prot_day_guard)*lv_prot_night_contain ,
-    a ~ normal( 0 , 1 ),
-    c(b_LPDG,b_LPNC,b_LPDGxLPNC) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_LPDGs,b_LPNCs,b_LPDGsxLPNCs)[species_index] ~ multi_normal( c(a,b_LPDG,b_LPNC,b_LPDGxLPNC) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-    
-  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
-
-precis(ml12, depth=2)
-
-
-dpred <- list(
-  village_index=rep(1,8),
-  lv_prot_day_guard=     c(0,1,0,1,0,1,0,1),
-  lv_prot_night_contain= c(0,0,1,1,0,0,1,1),
-  species_index=c(1,1,1,1,2,2,2,2)
-)
-
-link2 <- link(ml12, data=dpred , replace=list(village_index=av_z) )
-
-str(link2)
-
-precislist <- list(
-  hyena_crop_prot_no_contain_or_guard=link2[,1],
-  hyena_crop_prot_dayguard=link2[,2],
-  hyena_crop_prot_contain=link2[,3],
-  hyena_crop_prot_guard_and_contain=link2[,4],
-  lion_crop_prot_no_contain_or_guard=link2[,5],
-  lion_crop_prot_guard=link2[,6],
-  lion_crop_prot_contain=link2[,7],
-  lion_crop_prot_guard_and_contain=link2[,8]
-)
-
-plot(precis(precislist , ci=.89) , xlab="Probabity Crop Conflict" )
+# 
+# #contain and protect interact
+# ml12 <- ulam(
+#   alist(
+#     conflict ~ binomial(1,p),
+#     logit(p) <- av[village_index] + as[species_index] + b_LPDGs[species_index]*lv_prot_day_guard + (b_LPNCs[species_index] + b_LPDGsxLPNCs[species_index]*lv_prot_day_guard)*lv_prot_night_contain ,
+#     a ~ normal( 0 , 1 ),
+#     c(b_LPDG,b_LPNC,b_LPDGxLPNC) ~ normal( 0 , 0.5 ),
+#     av[village_index] ~ dnorm(a,sigma_v),
+#     c(as,b_LPDGs,b_LPNCs,b_LPDGsxLPNCs)[species_index] ~ multi_normal( c(a,b_LPDG,b_LPNC,b_LPDGxLPNC) , Rho , sigma_s),
+#     c(sigma_v,sigma_s) ~ dexp(1),
+#     Rho ~ lkj_corr(3)
+#     
+#   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
+# 
+# precis(ml12, depth=2)
+# 
+# 
+# dpred <- list(
+#   village_index=rep(1,8),
+#   lv_prot_day_guard=     c(0,1,0,1,0,1,0,1),
+#   lv_prot_night_contain= c(0,0,1,1,0,0,1,1),
+#   species_index=c(1,1,1,1,2,2,2,2)
+# )
+# 
+# link2 <- link(ml12, data=dpred , replace=list(village_index=av_z) )
+# 
+# str(link2)
+# 
+# precislist <- list(
+#   hyena_crop_prot_no_contain_or_guard=link2[,1],
+#   hyena_crop_prot_dayguard=link2[,2],
+#   hyena_crop_prot_contain=link2[,3],
+#   hyena_crop_prot_guard_and_contain=link2[,4],
+#   lion_crop_prot_no_contain_or_guard=link2[,5],
+#   lion_crop_prot_guard=link2[,6],
+#   lion_crop_prot_contain=link2[,7],
+#   lion_crop_prot_guard_and_contain=link2[,8]
+# )
+# 
+# plot(precis(precislist , ci=.89) , xlab="Probabity Crop Conflict" )
 
 
 #######interaction livestock head
@@ -2576,21 +2609,21 @@ for (i in 1:2){
 
 
 
-###all household and interventions household model
-
-ml14.2 <- ulam(
-  alist(
-    conflict  ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index]  + b_LSHs[species_index]*livestock_head_std + b_HHs[species_index]*household_size_std + (b_GUs[species_index] + b_GUxLSHs[species_index]*livestock_head_std)*guard_ave_day_std + (b_LPNCs[species_index] + b_GUxLPNCs[species_index]*guard_ave_day)*lv_prot_night_contain ,
-    a ~ normal( 0 , 1 ),
-    c(b_LSH,b_HH,b_GU ,b_GUxLSH,b_LPNC,b_GUxLPNC) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_LSHs,b_HHs,b_GUs,b_GUxLSHs,b_LPNCs,b_GUxLPNCs)[species_index] ~ multi_normal( c(a,b_LSH,b_HH,b_GU,b_GUxLSH,b_LPNC,b_GUxLPNC) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
-
-precis(ml14.2 , depth=2)
+# ###all household and interventions household model
+# 
+# ml14.2 <- ulam(
+#   alist(
+#     conflict  ~ binomial(1,p),
+#     logit(p) <- av[village_index] + as[species_index]  + b_LSHs[species_index]*livestock_head_std + b_HHs[species_index]*household_size_std + (b_GUs[species_index] + b_GUxLSHs[species_index]*livestock_head_std)*guard_ave_day_std + (b_LPNCs[species_index] + b_GUxLPNCs[species_index]*guard_ave_day)*lv_prot_night_contain ,
+#     a ~ normal( 0 , 1 ),
+#     c(b_LSH,b_HH,b_GU ,b_GUxLSH,b_LPNC,b_GUxLPNC) ~ normal( 0 , 0.5 ),
+#     av[village_index] ~ dnorm(a,sigma_v),
+#     c(as,b_LSHs,b_HHs,b_GUs,b_GUxLSHs,b_LPNCs,b_GUxLPNCs)[species_index] ~ multi_normal( c(a,b_LSH,b_HH,b_GU,b_GUxLSH,b_LPNC,b_GUxLPNC) , Rho , sigma_s),
+#     c(sigma_v,sigma_s) ~ dexp(1),
+#     Rho ~ lkj_corr(3)
+#   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
+# 
+# precis(ml14.2 , depth=2)
 
 
 #########landscape
@@ -2605,9 +2638,9 @@ ml15 <- ulam(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,  control=list(adapt_delta=0.999))
+  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE )
 
-precis(ml5 , depth=2)
+precis(ml15 , depth=3)
 
 #########SDistance
 
@@ -2713,7 +2746,6 @@ axis( 1 , at= ( seq(from=0 , to=0.7 , by=0.1) - mean(dc$c2070))/sd(dc$c2070) , l
 }
 
 
-compare(ml1,ml2,ml3,ml4,ml5,ml6,ml7,ml8,ml9,ml10,ml11,ml12,ml13,ml14,ml14.1,ml14.2,ml15,ml16.1,m16.2)
 
 
 #######global mofo won't converge
@@ -3243,6 +3275,7 @@ write.csv(ras_ele_sub , file="ras_elephant_crop_preds.csv")
 
 ######to catch a predator############
 ras_leo<-  read.csv("~/Dropbox/tza_wildlife_conflict/lionRasterstacktopoints_survext2.csv")
+
 ras_leo$settle_dist_km <- ras_leo$settle_dist/1000
 ras_leo$c70_std <- (ras_leo$c70 -mean(dl$c70 ) )/ sd(dl$c70 ) 
 ras_leo$road_std <- (ras_leo$road -mean(dl$road ) )/ sd(dl$road) 
@@ -3250,35 +3283,7 @@ ras_leo$build_dens_std <- (ras_leo$build_dens-mean(dl$build_dens ) )/ sd(dl$buil
 ras_leo$gse_slope30m_std <- (ras_leo$gse_slope30m-mean(dl$gse_slope30m) )/sd(dl$gse_slope30m) 
 ras_leo$settle_dist_km_std <- (ras_leo$settle_dist_km-mean(dl$settle_dist_km ) )/ sd(dl$settle_dist_km) 
 ras_leo$species_index <- 2
-
-p <- extract.samples(ml16.1)
-
-dpred <- list(
-  village_index=rep(1,nrow(ras_leo)),
-  settle_dist_km_std=ras_leo$settle_dist_km_std,
-  c70_std = ras_leo$c70_std,
-  road_std= ras_leo$road_std,
-  build_dens_std=ras_leo$build_dens_std,
-  gse_slope30m_std= ras_leo$gse_slope30m_st,
-  household_size_std=rep(0,nrow(ras_leo)),
-  livestock_head_std=rep(0,nrow(ras_leo)),
-  guard_ave_day_std=rep(0,nrow(ras_leo)),
-  species_index=ras_leo$species_index
-)
-
-ras_leo$pred_leo_crop_conflict <-0
-ras_leo$pred_leo_crop_conflict <- logistic( mean(p$a + p$as[,2]) + 
-                                              mean(p$b_SD + p$b_SDs[,2])*dpred$settle_dist_km_std  + 
-                                              mean(p$b_C70 + p$b_C70s[,2])*dpred$c70_std +
-                                              mean(p$b_RD + p$b_RDs[,2])*dpred$road_std +
-                                              mean(p$b_BD + p$b_BDs[,2])*dpred$build_dens_std +
-                                              mean(p$b_SL + p$b_SLs[,2])*dpred$gse_slope30m_std   
-)
-
-dens(ras_leo$pred_leo_crop_conflict)
-
-ras_leo_sub <- cbind( ras_leo[1:3] , ras_leo$pred_leo_crop_conflict)
-write.csv(ras_leo_sub , file="ras_lion_deadstock_preds.csv")
+ 
 
 
 ########hyena
@@ -3307,14 +3312,16 @@ dpred <- list(
 )
 
 ras_hyena$pred_hyena_crop_conflict <-0
-ras_hyena$pred_hyena_crop_conflict <- logistic( mean(p$a + p$as[,1]) + 
-                                                  mean(p$b_SD + p$b_SDs[,1])*dpred$settle_dist_km_std  + 
-                                                  mean(p$b_C70 + p$b_C70s[,1])*dpred$c70_std +
-                                                  mean(p$b_RD + p$b_RDs[,1])*dpred$road_std +
-                                                  mean(p$b_BD + p$b_BDs[,1])*dpred$build_dens_std +
-                                                  mean(p$b_SL + p$b_SLs[,1])*dpred$gse_slope30m_std   
+ras_hyena$pred_hyena_crop_conflict <- 
+  logistic( mean(p$a + p$as[,1]) + 
+      mean(p$b_SD + p$b_SDs[,1])*dpred$settle_dist_km_std  + 
+      mean(p$b_C70 + p$b_C70s[,1])*dpred$c70_std +
+      mean(p$b_RD + p$b_RDs[,1])*dpred$road_std +
+      mean(p$b_BD + p$b_BDs[,1])*dpred$build_dens_std +
+      mean(p$b_SL + p$b_SLs[,1])*dpred$gse_slope30m_std   
 )
 
+par(mfrow=c(1,1))
 dens(ras_hyena$pred_hyena_crop_conflict)
 
 ras_hyena_sub <- cbind( ras_hyena[1:3] , ras_hyena$pred_hyena_crop_conflict)
@@ -3323,7 +3330,7 @@ write.csv(ras_hyena_sub , file="ras_hyena_deadstock_preds.csv")
 
 ##############other graphs of imporatnce#
 #WAIC stuff
-compare(mc0,mc1,mc2,mc3,mc4,mc5,mc6,mc7,mc8,mc9,mc10,mc11,mc12,mc13,mc14,mc15,mc17)
+compare(mc0,mc1,mc2,mc3,mc4,mc5,mc6,mc7,mc8,mc9,mc10,mc11,mc13,mc14,mc15,mc17)
 p <- extract.samples(ml16.1)
 
 p_livestock_global <- list(
