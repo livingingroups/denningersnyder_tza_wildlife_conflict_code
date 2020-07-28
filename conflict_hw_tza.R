@@ -118,6 +118,8 @@ myvars2 <- c("conflict" , "village", "elephant_c", "baboon_c" , "farm_size" , "h
 dc <- d[myvars2]
 
 dc <- dc[dc$species!="lion",]
+dc <- dc[dc$species!="hyena",]
+
 dc <- dc[dc$farm==1,] #only look at conflicts with households that have farms
 
 
@@ -195,9 +197,39 @@ mc1 <- ulam(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
 
-precis(mc1, depth=2)
+mc1nc <- map2stan(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_CR + b_CRs[species_index])*crop_std ,
+    a ~ normal( 0 , 1 ),
+    b_CR ~ normal( 0 , 0.5 ),
+    av[village_index] ~ dnorm(a,sigma_v),
+    c(as,b_CRs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(sigma_v,sigma_s) ~ dexp(1),
+    Rho ~ dlkjcorr(3)
+    
+  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
+
+mc1nc <- map2stan(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + b_CR + b_CRs[species_index]*crop_std ,
+    a ~ normal( 0 , 1 ),
+    b_CR ~ normal( 0 , 0.5 ),
+    av[village_index] ~ dnorm(a,sigma_v),
+    c(as,b_CRs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(sigma_v,sigma_s) ~ dexp(1),
+    Rho ~ dlkjcorr(4)
+    
+  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
+
+
+precis(mc1, depth=3)
+precis(mc1nc, depth=3)
 
 
 plot_seq <- seq(from=min(dc$crop_std) , to=max(dc$crop_std) , length=30)
@@ -214,7 +246,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc1, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc1nc, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){plot(dc$baboon_c ~ dc$crop_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density standardized")}
   if(i==2){plot(dc$elephant_c ~ dc$crop_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density standardized")}
@@ -224,8 +256,7 @@ for (i in 1:2){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
 }
-dens(logistic(post$av[,1] + post$a))
-precis(mc0 , depth=3)
+
 
 ##settlement distance
 mc2 <- ulam(
@@ -1057,7 +1088,27 @@ mc14 <- ulam(
     
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
-precis(mc14)
+##non-centered
+
+mc14nc <- map2stan(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_HH + b_HHs[species_index])*household_size_std  
+    + (b_FS + b_FSs[species_index])*farm_size_std 
+    + (b_MP + b_MPs[species_index])*months_planted_std 
+    + (b_SEE + b_SEEs[species_index])*see_field,
+    a ~ normal( 0 , 1 ),
+    c(b_HH,b_FS,b_MP,b_SEE) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(a,sigma_v),
+    c(as,b_HHs,b_FSs,b_MPs,b_SEEs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(sigma_v,sigma_s) ~ dexp(1),
+    Rho ~ dlkjcorr(3)
+    
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
+
+
+precis(mc14nc , depth=2)
 ###hh size
 
 plot_seq <- seq(from=min(dc$household_size_std) , to=max(dc$household_size_std) , length=30)
@@ -1186,7 +1237,28 @@ mc15 <- ulam(
     
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,control=list(adapt_delta=0.999))
 
-precis(mc15)
+mc15nc <- map2stan(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <-a + av[village_index] + as[species_index] 
+    + (b_SD + b_SDs[species_index])*settle_dist_km_std 
+    + (b_C70 + b_C70s[species_index])*c70_std 
+    + (b_C2070 + b_C2070s[species_index])*c2070_std 
+    + (b_RIV + b_RIVs[species_index])*river_std  
+    + (b_RD + b_RDs[species_index])*road_std 
+    + (b_BD + b_BDs[species_index])*build_dens_std 
+    + (b_CR + b_CRs[species_index])*crop_std,
+    a ~ normal( 0 , 1 ),
+    c(b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_CR) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(a,sigma_v),
+    c(as,b_SDs,b_C70s,b_C2070s,b_RIVs,b_RDs,b_BDs,b_CRs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(sigma_v,sigma_s) ~ dexp(1),
+    Rho ~ dlkjcorr(3)
+    
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,control=list(adapt_delta=0.99))
+
+
+precis(mc15nc)
 
 #plot distance to settlement
 plot_seq <- seq(from=min(dc$settle_dist_km_std) , to=max(dc$settle_dist_km_std) , length=30)
@@ -1419,9 +1491,34 @@ mc17 <- ulam(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.999))
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.99))
 
+mc17nc <- map2stan(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+      (b_SD + b_SDs[species_index])*settle_dist_km_std +
+      (b_C70 + b_C70s[species_index])*c70_std +
+      (b_C2070 + b_C2070s[species_index])*c2070_std +
+      (b_RIV + b_RIVs[species_index])*river_std +
+      (b_RD + b_RDs[species_index])*road_std +
+      (b_BD + b_BDs[species_index])*build_dens_std +
+      (b_CR + b_CRs[species_index])*crop_std +
+      (b_HH + b_HHs[species_index])*household_size_std + 
+      (b_FS + b_FSs[species_index])*farm_size_std +
+      (b_SEE + b_SEEs[species_index])*see_field,
+    
+    a ~ normal( 0 , 1 ),
+    c(b_SD,b_C70,b_C2070,b_CR,b_BD,b_HH,b_FS,b_SEE,b_RD,b_RIV) ~ normal( 0 , 1 ),
+    c(b_HH,b_FS,b_SEE) ~ normal( 0 , 0.5 ),
+    av[village_index] ~ dnorm(a,sigma_v),
+    c(as,b_SDs,b_C70s,b_C2070s,b_HHs,b_FSs,b_SEEs,b_CRs,b_BDs,b_RDs,b_RIVs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(sigma_v,sigma_s) ~ dexp(1),
+     Rho ~ dlkjcorr(3)
+    
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.99))
 
+mc17 <- mc17nc
 
 #plot distance to settlement
 plot_seq <- seq(from=min(dc$settle_dist_km_std) , to=max(dc$settle_dist_km_std) , length=30)
@@ -1842,13 +1939,13 @@ for (i in 1:2){
 ##SEE
 dpred <- list(
   village_index=rep(1,4),
-  settle_dist_km_std=rep(0,30),
-  c70_std = rep(0,30),
-  c2070_std = rep(0,30),
-  river_std= rep(0,30),
-  road_std= rep(0,30),
-  build_dens_std= rep(0,30),
-  crop_std= rep(0,30),
+  settle_dist_km_std=rep(0,4),
+  c70_std = rep(0,4),
+  c2070_std = rep(0,4),
+  river_std= rep(0,4),
+  road_std= rep(0,4),
+  build_dens_std= rep(0,4),
+  crop_std= rep(0,4),
   see_field=c(0,1,0,1),
   months_planted_std=rep(0,4),
   farm_size_std=rep(0,4),
@@ -1858,7 +1955,7 @@ dpred <- list(
   species_index=c(1,1,2,2)
 )
 
-link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) , n=2000)
 
 pdf(file = "seefield_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
 par( mar=c(4,4,1,1)+.1 )
@@ -1938,6 +2035,7 @@ dH$species <- "hyena"
 
 dl <-  rbind(dL,dH)
 
+dl <- dl[dl$livestock_head>0,] ##remove people with livestock, but no mediuum or large
 dl$settle_dist_km <- dl$settle_dist/1000
 dl$settle_dist_km_std <- (dl$settle_dist_km-mean(dl$settle_dist_km) )/sd(dl$settle_dist_km)
 dl$c70_std <- (dl$c70-mean(dl$c70) )/sd(dl$c70)
@@ -3364,6 +3462,8 @@ p_crop_global <- list(
   b_CR_baboon = p$b_CR + p$b_CRs[,1],
   b_C70_baboon = p$b_C70 + p$b_C70s[,1],
   b_C2070_baboon = p$b_C2070 + p$b_C2070s[,1],
+  b_RD_baboon = p$b_RD + p$b_RDs[,1],
+  b_RIV_baboon = p$b_RIV + p$b_RIVs[,1],
   b_SD_baboon = p$b_SD + p$b_SDs[,1],
   b_FS_baboon = p$b_FS + p$b_FSs[,1],
   b_HH_baboon = p$b_HH + p$b_HHs[,1],
@@ -3372,6 +3472,8 @@ p_crop_global <- list(
   b_CR_elephant = p$b_CR + p$b_CRs[,2],
   b_C70_elephant = p$b_C70 + p$b_C70s[,2],
   b_C2070_elephant = p$b_C2070 + p$b_C2070s[,2],
+  b_RD_elephant = p$b_RD + p$b_RDs[,2],
+  b_RIV_elephant = p$b_RIV + p$b_RIVs[,2],
   b_SD_elephant = p$b_SD + p$b_SDs[,2],
   b_FS_elephant = p$b_FS + p$b_FSs[,2],
   b_HH_elephant = p$b_HH + p$b_HHs[,2],
