@@ -5,6 +5,17 @@ require(lubridate)
 require(RColorBrewer)
 library(janitor)
 
+
+#####to covert to map to stan
+#1 change ulam to map to stan
+#2 add a to likelihood loop.
+#3 center priors on zero and not a or b_XX
+#4 change multivariate normal priors to map to stan specs
+#5 change rho to map to stan version, i think dlkjcorr(3) is fine, find replace this
+#6 make sure they all run same # iterations
+# look at mc2 and commeted out version for a guide
+# look at mc17nc for the fancy final version of what we want
+# 
 # #########LIVESTOCK lions and hyenas
 # settle_dist_km_std   LS   b_SD 
 # household_size_std   HH   b_HH
@@ -151,16 +162,29 @@ dc$village_index <- as.integer(as.factor(dc$village))
 ###models
 
 
-mc0 <- ulam(
+# mc0 <- ulam(
+#   alist(
+#     conflict ~ binomial(1,p),
+#     logit(p) <- av[village_index] + as[species_index] ,
+#     a ~ normal( 0 , 1 ),
+#     av[village_index] ~ dnorm(a,sigma_v),
+#     as[species_index] ~ dnorm(a,sigma_s),
+#     c(sigma_v,sigma_s) ~ dexp(1)
+#     
+#   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik = TRUE)
+
+mc0 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] ,
+    logit(p) <- a + av[village_index] + as[species_index] ,
     a ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(a,sigma_v),
     as[species_index] ~ dnorm(a,sigma_s),
     c(sigma_v,sigma_s) ~ dexp(1)
     
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik = TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
+
+
 
 post <- extract.samples(mc1)
 str(post)
@@ -186,41 +210,14 @@ link2 <- link(mc0, data=dpred  )
 
 str(post)
 ##crop
-mc1 <- ulam(
-  alist(
-    conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] +  b_CRs[species_index]*crop_std ,
-    a ~ normal( 0 , 1 ),
-    b_CR ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_CRs)[species_index] ~ multi_normal( c(a,b_CR) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-    
-  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
-
-mc1nc <- map2stan(
-  alist(
-    conflict ~ binomial(1,p),
-    logit(p) <- a + av[village_index] + as[species_index] 
-    + (b_CR + b_CRs[species_index])*crop_std ,
-    a ~ normal( 0 , 1 ),
-    b_CR ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_CRs)[species_index] ~ dmvnormNC(sigma_s,Rho),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ dlkjcorr(3)
-    
-  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
-
-mc1nc <- map2stan(
+mc1 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] 
     + b_CR + b_CRs[species_index]*crop_std ,
     a ~ normal( 0 , 1 ),
-    b_CR ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
+    b_CR ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_CRs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(4)
@@ -259,18 +256,32 @@ for (i in 1:2){
 
 
 ##settlement distance
-mc2 <- ulam(
+# mc2 <- ulam(
+#   alist(
+#     conflict ~ binomial(1,p),
+#     logit(p) <- av[village_index] + as[species_index] +  b_SDs[species_index]*settle_dist_km_std ,
+#     a ~ normal( 0 , 1 ),
+#     b_SD ~ normal( 0 , 0.5 ),
+#     av[village_index] ~ dnorm(a,sigma_v),
+#     c(as,b_SDs)[species_index] ~ multi_normal( c(a,b_SD) , Rho , sigma_s),
+#     c(sigma_v,sigma_s) ~ dexp(1),
+#     Rho ~ lkj_corr(3)
+# 
+#   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
+
+mc2 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] +  b_SDs[species_index]*settle_dist_km_std ,
+    logit(p) <- a + av[village_index] + as[species_index] + 
+      (b_SD + b_SDs[species_index])*settle_dist_km_std ,
     a ~ normal( 0 , 1 ),
-    b_SD ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_SDs)[species_index] ~ multi_normal( c(a,b_SD) , Rho , sigma_s),
+    b_SD ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v) ,
+    c(as,b_SDs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
 
 precis(mc2, depth=2)
 
@@ -302,19 +313,31 @@ for (i in 1:2){
 }
 
 #####household size
-mc3 <- ulam(
+# mc3 <- ulam(
+#   alist(
+#     conflict ~ binomial(1,p),
+#     logit(p) <- av[village_index] + as[species_index] + b_HHs[species_index]*household_size_std,
+#     a ~ normal( 0 , 1 ),
+#     b_HH ~ normal( 0 , 0.5 ),
+#     av[village_index] ~ dnorm(a,sigma_v),
+#     c(as,b_HHs)[species_index] ~ multi_normal( c(a,b_HH) , Rho , sigma_s),
+#     c(sigma_v,sigma_s) ~ dexp(1),
+#     Rho ~ lkj_corr(3)
+#     
+#   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
+
+mc3 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_HHs[species_index]*household_size_std,
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_HH + b_HHs[species_index])*household_size_std,
     a ~ normal( 0 , 1 ),
-    b_HH ~ normal( 0 , 0.5 ),
+    b_HH ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_HHs)[species_index] ~ multi_normal( c(a,b_HH) , Rho , sigma_s),
+    c(as,b_HHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-    
+    Rho ~ dlkjcorr(3)
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
-
 precis(mc3, depth=2)
 
 
@@ -341,16 +364,17 @@ for (i in 1:2){
 }
 
 ##########farmsize#####
-mc4 <- ulam(
+mc4 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_FSs[species_index]*farm_size_std ,
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_FS + b_FSs[species_index])*farm_size_std ,
     a ~ normal( 0 , 1 ),
-    b_FS ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_FSs)[species_index] ~ multi_normal( c(a,b_FS) , Rho , sigma_s),
+    b_FS ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_FSs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -383,13 +407,14 @@ for (i in 1:2){
 mc5 <- ulam(
   alist(
     conflict  ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index]  + b_SEEs[species_index]*see_field ,
+    logit(p) <- a + av[village_index] + as[species_index]  + 
+      (b_SEE + b_SEEs[species_index])*see_field ,
     a ~ normal( 0 , 1 ),
-    b_SEE ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_SEEs)[species_index] ~ multi_normal( c(a,b_SEE) , Rho , sigma_s),
+    b_SEE ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_SEEs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
   ), data=dc , chains=4 , cores=4 , iter=5000 , log_lik=TRUE)
 
 
