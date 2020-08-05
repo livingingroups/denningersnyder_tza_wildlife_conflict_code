@@ -57,6 +57,7 @@ library(janitor)
 #hw <- read.csv("~/Downloads/Spatial_Household_Survey_Clean_1Jun20sp.csv") 
 #hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuild.csv")
 hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
+hw <-  read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
 
 hw[,43] <- ifelse(hw[,43] < 0 , 0 , hw[,43])
 hw[,44] <- ifelse(hw[,44] < 0 , 0 , hw[,44])
@@ -182,11 +183,11 @@ mc0 <- map2stan(
     as[species_index] ~ dnorm(a,sigma_s),
     c(sigma_v,sigma_s) ~ dexp(1)
     
-  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 
 
-post <- extract.samples(mc1)
+post <- extract.samples(mc0)
 str(post)
 dens( logistic(post$a + post$as[,1]) , col="red" , xlim=c(0,1) , ylim=c(0,230)) 
 dens( logistic(post$a + post$as[,2] ), col="orange" , add=TRUE) 
@@ -220,9 +221,9 @@ mc1 <- map2stan(
     av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_CRs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ dlkjcorr(4)
+    Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 
 precis(mc1, depth=3)
@@ -281,7 +282,7 @@ mc2 <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=2000 , log_lik=TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 precis(mc2, depth=2)
 
@@ -404,7 +405,7 @@ for (i in 1:2){
 }
 
 ####see field
-mc5 <- ulam(
+mc5 <- map2stan(
   alist(
     conflict  ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index]  + 
@@ -415,7 +416,7 @@ mc5 <- ulam(
     c(as,b_SEEs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=5000 , log_lik=TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 
 dpred <- list(
@@ -447,18 +448,18 @@ dens(link2[,2] , add=TRUE , col="black" )
 abline(v=mean(link2[,2]) , col="black" , lty=1)
 
 ###cover 70
-mc6 <- ulam(
+mc6 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_C70s[species_index]*c70_std ,
-    a ~ normal( 0 , 1 ),
-    b_C70 ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_C70s)[species_index] ~ multi_normal( c(a,b_C70) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_C70 + b_C70s[species_index])*c70_std ,
+    c(a,b_C70) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_C70s)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=5000 , log_lik=TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 precis(mc6, depth=2)
 
@@ -485,18 +486,18 @@ for (i in 1:2){
 }
 
 #####cover 2070
-mc7 <- ulam(
+mc7 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_C2070s[species_index]*c2070_std ,
-    a ~ normal( 0 , 1 ),
-    b_C2070 ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_C2070s)[species_index] ~ multi_normal( c(a,b_C2070) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_C2070 + b_C2070s[species_index])*c2070_std, 
+    c(a,b_C2070) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_C2070s)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=5000 , log_lik=TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 precis(mc7 , depth=2)
 
@@ -524,16 +525,16 @@ for (i in 1:3){
 
 
 ####river
-mc8 <- ulam(
+mc8 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_RIVs[species_index]*river_std,
-    a ~ normal( 0 , 1 ),
-    b_RIV ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_RIVs)[species_index] ~ multi_normal( c(a,b_RIV) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_RIV + b_RIVs[species_index])*river_std ,
+    c(a,b_RIV) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_RIVs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -563,16 +564,16 @@ for (i in 1:2){
 }
 
 ####building dens
-mc9 <- ulam(
+mc9 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_BDs[species_index]*build_dens_std,
-    a ~ normal( 0 , 1 ),
-    b_BD ~ normal( 0 , 0.5 ),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+    (b_BD + b_BDs[species_index])*build_dens_std,
+    c(a,b_BD) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_BDs)[species_index] ~ multi_normal( c(a,b_BD) , Rho , sigma_s),
+    c(as,b_BDs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -602,16 +603,16 @@ for (i in 1:2){
 
 
 ###road
-mc10 <- ulam(
+mc10 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_RDs[species_index]*road_std,
-    a ~ normal( 0 , 1 ),
-    b_RD ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_RDs)[species_index] ~ multi_normal( c(a,b_RD) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+    (b_RD + b_RDs[species_index])*road_std ,
+    c(a,b_RD) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_RDs)[species_index] ~ dmvnormNC(sigma_s,Rho) ,
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -640,16 +641,16 @@ for (i in 1:2){
 }
 
 ###months planted
-mc11 <- ulam(
+mc11 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_MPs[species_index]*months_planted_std,
-    a ~ normal( 0 , 1 ),
-    b_MP ~ normal( 0 , 0.5 ),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+    (b_MP + b_MPs[species_index])*months_planted_std,
+    c(a,b_MP) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_MPs)[species_index] ~ multi_normal( c(a,b_MP) , Rho , sigma_s),
+    c(as,b_MPs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
 
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -691,7 +692,7 @@ for (i in 1:2){
 #     av[village_index] ~ dnorm(a,sigma_v),
 #     c(as,b_CPMs,b_CPWFs,b_CPSIs,b_CPSHs,b_CPFs,b_CPCs,b_CPGs)[species_index] ~ multi_normal( c(a,b_CPM,b_CPWF,bCPSI,b_CPSH,b_CPF,b_CPC,b_CPG) , Rho , sigma_s),
 #     c(sigma_v,sigma_s) ~ dexp(1),
-#     Rho ~ lkj_corr(3)
+#     Rho ~ dlkjcorr(3)
 #     
 #   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 # 
@@ -1051,18 +1052,19 @@ for (i in 1:2){
 # plot(precis(precislist , ci=.89) , xlab="Probabity Crop Conflict" )
 
 ##interactionmodels
-mc13 <- ulam(
+mc13 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_HHs[species_index]*household_size_std + (b_FSs[species_index] + b_HHxFSs[species_index]*household_size_std )*farm_size_std,
-    a ~ normal( 0 , 1 ),
-    c(b_HH,b_FS,b_HHxFS) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_HHs,b_FSs,b_HHxFSs)[species_index] ~ multi_normal( c(a,b_HH,b_FS,b_HHxFS) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+      (b_HH + b_HHs[species_index])*household_size_std + 
+      (b_FS + b_FSs[species_index] +b_HHxFS + b_HHxFSs[species_index]*household_size_std )*farm_size_std,
+    c(a,b_HH,b_FS,b_HHxFS) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_HHs,b_FSs,b_HHxFSs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.999) )
+  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.99) )
 
 precis(mc13, depth=3)
 
@@ -1099,23 +1101,7 @@ for (i in 1:2){
 }
 
 ########household variables
-
-mc14 <- ulam(
-  alist(
-    conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_HHs[species_index]*household_size_std  + b_FSs[species_index]*farm_size_std + b_MPs[species_index]*months_planted_std + b_SEEs[species_index]*see_field,
-    a ~ normal( 0 , 1 ),
-    c(b_HH,b_FS,b_MP,b_SEE) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_HHs,b_FSs,b_MPs,b_SEEs)[species_index] ~ multi_normal( c(a,b_HH,b_FS,b_MP,b_SEE) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-    
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
-
-##non-centered
-
-mc14nc <- map2stan(
+mc14 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] 
@@ -1123,8 +1109,7 @@ mc14nc <- map2stan(
     + (b_FS + b_FSs[species_index])*farm_size_std 
     + (b_MP + b_MPs[species_index])*months_planted_std 
     + (b_SEE + b_SEEs[species_index])*see_field,
-    a ~ normal( 0 , 1 ),
-    c(b_HH,b_FS,b_MP,b_SEE) ~ normal( 0 , 1 ),
+    c(a,b_HH,b_FS,b_MP,b_SEE) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(a,sigma_v),
     c(as,b_HHs,b_FSs,b_MPs,b_SEEs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
@@ -1249,20 +1234,7 @@ legend('topleft' , c("can't see field" , "see field") , col=c("grey" , "black") 
 compare(mc0,mc1,mc2,mc3,mc4,mc5,mc6,mc7,mc8,mc9,mc10,mc11,mc12,mc13,mc14,mc15,mc12.3,mc12.4,mc12.9)
 
 #############landscape variables####################################
-mc15 <- ulam(
-  alist(
-    conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] +  b_SDs[species_index]*settle_dist_km_std + b_C70s[species_index]*c70_std + b_C2070s[species_index]*c2070_std + b_RIVs[species_index]*river_std  + b_RDs[species_index]*road_std + b_BDs[species_index]*build_dens_std +  b_CRs[species_index]*crop_std,
-    a ~ normal( 0 , 1 ),
-    c(b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_CR) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_SDs,b_C70s,b_C2070s,b_RIVs,b_RDs,b_BDs,b_CRs)[species_index] ~ multi_normal( c(a,b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_CR) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-    
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,control=list(adapt_delta=0.999))
-
-mc15nc <- map2stan(
+mc15 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <-a + av[village_index] + as[species_index] 
@@ -1273,8 +1245,7 @@ mc15nc <- map2stan(
     + (b_RD + b_RDs[species_index])*road_std 
     + (b_BD + b_BDs[species_index])*build_dens_std 
     + (b_CR + b_CRs[species_index])*crop_std,
-    a ~ normal( 0 , 1 ),
-    c(b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_CR) ~ normal( 0 , 1 ),
+    c(a,b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_CR) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(a,sigma_v),
     c(as,b_SDs,b_C70s,b_C2070s,b_RIVs,b_RDs,b_BDs,b_CRs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
@@ -1283,7 +1254,7 @@ mc15nc <- map2stan(
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,control=list(adapt_delta=0.99))
 
 
-precis(mc15nc)
+precis(mc15)
 
 #plot distance to settlement
 plot_seq <- seq(from=min(dc$settle_dist_km_std) , to=max(dc$settle_dist_km_std) , length=30)
@@ -1494,31 +1465,8 @@ for (i in 1:2){
 
 
 ############################global########################
-mc17 <- ulam(
-  alist(
-    conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + 
-      as[species_index] + 
-      b_SDs[species_index]*settle_dist_km_std + 
-      b_C70s[species_index]*c70_std + 
-      b_C2070s[species_index]*c2070_std + 
-      b_BDs[species_index]*build_dens_std + 
-      b_HHs[species_index]*household_size_std + 
-      b_FSs[species_index]*farm_size_std + 
-      b_SEEs[species_index]*see_field + 
-      b_CRs[species_index]*crop_std,
-    
-    a ~ normal( 0 , 1 ),
-    c(b_SD,b_C70,b_C2070,b_CR,b_BD) ~ normal( 0 , 0.5 ),
-    c(b_HH,b_FS,b_SEE) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_SDs,b_C70s,b_C2070s,b_HHs,b_FSs,b_SEEs,b_CRs,b_BDs)[species_index] ~ multi_normal( c(a,b_SD,b_C70,b_C2070,b_HH,b_FS,b_SEE,b_CR,b_BD) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-    
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.99))
 
-mc17nc <- map2stan(
+mc17 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] + 
@@ -1533,17 +1481,15 @@ mc17nc <- map2stan(
       (b_FS + b_FSs[species_index])*farm_size_std +
       (b_SEE + b_SEEs[species_index])*see_field,
     
-    a ~ normal( 0 , 1 ),
-    c(b_SD,b_C70,b_C2070,b_CR,b_BD,b_HH,b_FS,b_SEE,b_RD,b_RIV) ~ normal( 0 , 1 ),
+    c(a,b_SD,b_C70,b_C2070,b_CR,b_BD,b_HH,b_FS,b_SEE,b_RD,b_RIV) ~ normal( 0 , 1 ),
     c(b_HH,b_FS,b_SEE) ~ normal( 0 , 0.5 ),
     av[village_index] ~ dnorm(a,sigma_v),
     c(as,b_SDs,b_C70s,b_C2070s,b_HHs,b_FSs,b_SEEs,b_CRs,b_BDs,b_RDs,b_RIVs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-     Rho ~ dlkjcorr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.99))
 
-mc17 <- mc17nc
 
 #plot distance to settlement
 plot_seq <- seq(from=min(dc$settle_dist_km_std) , to=max(dc$settle_dist_km_std) , length=30)
@@ -1571,7 +1517,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
     par( mar=c(4,4,1,1)+.1 )
   
   if(i==1){
@@ -1582,10 +1528,10 @@ for (i in 1:2){
     pdf(file = "settle_dist_crop_global_conflict_ele.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n' ,  cex.lab=1.3) }
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
   axis( 1 , at= ( c(0:12) - mean(dc$settle_dist_km))/sd(dc$settle_dist_km) , labels=c(0:12))
   
@@ -1613,7 +1559,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
     pdf(file = "c70_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
@@ -1623,10 +1569,10 @@ for (i in 1:2){
     pdf(file = "c70_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
   axis( 1 , at= ( seq(from=0 , to=0.25 , by=0.05) - mean(dc$c70))/sd(dc$c70) , labels= seq(from=0 , to=0.25 , by=0.05) )
   dev.off()
@@ -1653,7 +1599,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   if(i==1){
     pdf(file = "c2070_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
@@ -1662,10 +1608,10 @@ for (i in 1:2){
     pdf(file = "c2070_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
 axis( 1 , at= ( seq(from=0 , to=0.7 , by=0.1) - mean(dc$c2070))/sd(dc$c2070) , labels= seq(from=0 , to=0.70 , by=0.1) )
    dev.off()
@@ -1693,7 +1639,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   if(i==1){
     pdf(file = "river_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
@@ -1702,10 +1648,10 @@ for (i in 1:2){
     pdf(file = "river_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$river_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
   axis( 1 , at= ( seq(from=0 , to=0.06 , by=0.01) - mean(dc$river))/sd(dc$river) , labels= seq(from=0 , to=0.06 , by=0.01) )
   dev.off()
@@ -1733,7 +1679,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
     pdf(file = "road_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
@@ -1743,10 +1689,10 @@ for (i in 1:2){
     pdf(file = "road_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$road_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="road density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
   axis( 1 , at= ( seq(from=0 , to=0.04 , by=0.005) - mean(dc$road))/sd(dc$road) , labels= seq(from=0 , to=0.04 , by=0.005) )
   dev.off()
@@ -1776,7 +1722,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
     pdf(file = "build_dens_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
@@ -1786,10 +1732,10 @@ for (i in 1:2){
     pdf(file = "build_dens_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$build_dens_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
    axis( 1 , at= ( seq(from=0 , to=250 , by=25) - mean(dc$build_dens))/sd(dc$build_dens) , labels= seq(from=0 , to=250 , by=25) )
   dev.off()
@@ -1816,7 +1762,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
     pdf(file = "crop_dens_crop_global_conflict_bab.pdf",   width = 6, height = 6)
@@ -1826,10 +1772,10 @@ for (i in 1:2){
     pdf(file = "crop_dens_crop_global_conflict_ele.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$crop_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
   axis( 1 , at= ( seq(from=0 , to=1 , by=0.1) - mean(dc$crop))/sd(dc$crop) , labels= seq(from=0 , to=1 , by=0.1) )
   dev.off()
@@ -1858,7 +1804,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
     pdf(file = "hhsize_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
@@ -1868,10 +1814,10 @@ for (i in 1:2){
     pdf(file = "hhsize_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$household_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
   axis( 1 , at= ( seq(from=0 , to=30 , by=5) - mean(dc$household_size))/sd(dc$household_size) , labels= seq(from=0 , to=30 , by=5) )
   dev.off()
@@ -1899,7 +1845,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
     pdf(file = "farmsize_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
@@ -1909,10 +1855,10 @@ for (i in 1:2){
     pdf(file = "farmsize_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$farm_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size",  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
   axis( 1 , at= ( seq(from=0 , to=30 , by=5) - mean(dc$farm_size))/sd(dc$farm_size) , labels= seq(from=0 , to=30 , by=5) )
   dev.off()
@@ -1942,7 +1888,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
     pdf(file = "monthsplanted_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
@@ -1952,10 +1898,10 @@ for (i in 1:2){
     pdf(file = "monthsplanted_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$months_planted_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="months planted" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
+  pred_mean <- apply(link2$link , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
   axis( 1 , at= ( seq(from=1 , to=12 , by=1) - mean(dc$months_planted))/sd(dc$months_planted) , labels= seq(from=1 , to=12 , by=1) )
   dev.off()
@@ -1980,59 +1926,59 @@ dpred <- list(
   species_index=c(1,1,2,2)
 )
 
-link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) , n=2000)
+link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
 
 pdf(file = "seefield_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
 par( mar=c(4,4,1,1)+.1 )
-dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
-abline(v=mean(link2[,1]) , col="blue" , lty=2 ,lw=2)
-dens(link2[,2] , add=TRUE , col="darkblue")
-abline(v=mean(link2[,2]) , col="darkblue" , lty=1 , lw=2)
+dens(link2$link[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
+abline(v=mean(link2$link[,1]) , col="blue" , lty=2 ,lw=2)
+dens(link2$link[,2] , add=TRUE , col="darkblue")
+abline(v=mean(link2$link[,2]) , col="darkblue" , lty=1 , lw=2)
 legend('topright' , c("field not visible" , "field visible") , col=c("blue" , "darkblue") , lty=c(2,1) , bty='n', lw=2)
 dev.off()
 
 pdf(file = "seefield_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
 par( mar=c(4,4,1,1)+.1 )
-dens(link2[,3] , lty=2 , col="darkgrey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
-abline(v=mean(link2[,3]) , col="darkgrey" , lty=2, lw=2)
-dens(link2[,4] , add=TRUE , col="black" )
-abline(v=mean(link2[,4]) , col="black" , lty=1, lw=2)
+dens(link2$link[,3] , lty=2 , col="darkgrey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
+abline(v=mean(link2$link[,3]) , col="darkgrey" , lty=2, lw=2)
+dens(link2$link[,4] , add=TRUE , col="black" )
+abline(v=mean(link2$link[,4]) , col="black" , lty=1, lw=2)
 legend('topleft' , c("field not visible" , "field visible") , col=c("darkgrey" , "black") , lty=c(2,1) , bty='n' , lw=2)
 dev.off()
 
 
-####global restrict iusing WAIC
-mc17.1 <- ulam(
-  alist(
-    conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + 
-      as[species_index] + 
-      b_SDs[species_index]*settle_dist_km_std + 
-      b_C70s[species_index]*c70_std + 
-      b_C2070s[species_index]*c2070_std + 
-      b_HHs[species_index]*household_size_std + 
-      b_FSs[species_index]*farm_size_std + 
-      b_SEEs[species_index]*see_field + 
-      b_CRs[species_index]*crop_std,
-    
-    a ~ normal( 0 , 1 ),
-    c(b_SD,b_C70,b_C2070,b_CR) ~ normal( 0 , 0.5 ),
-    c(b_HH,b_FS,b_SEE) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_SDs,b_C70s,b_C2070s,b_HHs,b_FSs,b_SEEs,b_CRs)[species_index] ~ multi_normal( c(a,b_SD,b_C70,b_C2070,b_HH,b_FS,b_SEE,b_CR) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-    
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
+# ####global restrict iusing WAIC
+# mc17.1 <- ulam(
+#   alist(
+#     conflict ~ binomial(1,p),
+#     logit(p) <- av[village_index] + 
+#       as[species_index] + 
+#       b_SDs[species_index]*settle_dist_km_std + 
+#       b_C70s[species_index]*c70_std + 
+#       b_C2070s[species_index]*c2070_std + 
+#       b_HHs[species_index]*household_size_std + 
+#       b_FSs[species_index]*farm_size_std + 
+#       b_SEEs[species_index]*see_field + 
+#       b_CRs[species_index]*crop_std,
+#     
+#     a ~ normal( 0 , 1 ),
+#     c(b_SD,b_C70,b_C2070,b_CR) ~ normal( 0 , 0.5 ),
+#     c(b_HH,b_FS,b_SEE) ~ normal( 0 , 0.5 ),
+#     av[village_index] ~ dnorm(a,sigma_v),
+#     c(as,b_SDs,b_C70s,b_C2070s,b_HHs,b_FSs,b_SEEs,b_CRs)[species_index] ~ multi_normal( c(a,b_SD,b_C70,b_C2070,b_HH,b_FS,b_SEE,b_CR) , Rho , sigma_s),
+#     c(sigma_v,sigma_s) ~ dexp(1),
+#     Rho ~ dlkjcorr(3)
+#     
+#   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 
 WAICcropmods <- compare(mc0,mc1,mc2,mc3,mc4,mc5,mc6,mc7,mc8,mc9,mc10,mc11,mc13,mc14,mc15,mc17)
 write.csv(WAICcropmods , file="WAICcropmodels.csv")
 #compare(mc12.1 , mc12.2, mc12.3, mc12.4, mc12.6 , mc12.7)
 
-
-WAICpredmods <-compare(ml1,ml2,ml3,ml4,ml5,ml6,ml7,ml8,ml9,ml10,ml11,ml13,ml14,ml14.1,ml15,ml16.1)
-write.csv(WAICpredmods , file="WAICpredmodels.csv")
+# 
+# WAICpredmods <-compare(ml1,ml2,ml3,ml4,ml5,ml6,ml7,ml8,ml9,ml10,ml11,ml13,ml14,ml14.1,ml15,ml16.1)
+# write.csv(WAICpredmods , file="WAICpredmodels.csv")
 
 ##########################################################################
 ###########################LIVESTOCK DAMAGE############################
@@ -2277,7 +2223,7 @@ ml6 <- ulam(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=5000 , log_lik=TRUE)
+  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 precis(ml6, depth=2)
 
@@ -2316,7 +2262,7 @@ ml7 <- ulam(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=5000 , log_lik=TRUE)
+  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 precis(ml7 , depth=2)
 
@@ -3306,6 +3252,7 @@ for (i in 1:2){
 #########################################
 ###############baboons
 ras_bab<-  read.csv("~/Dropbox/tza_wildlife_conflict/baboonRasterstacktopoints_survext.csv")
+ras_bab<-  read.csv("baboonRasterstacktopoints_survext.csv")
 
 ras_bab$settle_dist_km <- ras_bab$settle_dist/1000
 ras_bab$crop_std <- (ras_bab$crop-mean(dc$crop) )/sd(dc$crop) 
@@ -3342,8 +3289,10 @@ ras_bab$pred_bab_crop_conflict <- logistic( mean(p$a + p$as[,1]) +
                                               mean(p$b_C70 + p$b_C70s[,1])*dpred$c70_std +
                                               mean(p$b_C2070 + p$b_C2070s[,1])*dpred$c2070_std +
                                               mean(p$b_BD + p$b_BDs[,1])*dpred$build_dens_std +
-                                              mean(p$b_CRs + p$b_CRs[,1])*dpred$crop_std  + 
-                                              mean(p$b_SEEs + p$b_SEEs[,1])*dpred$see_field 
+                                              mean(p$b_RD + p$b_RDs[,1])*dpred$crop_std  + 
+                                              mean(p$b_RIV + p$b_RIVs[,1])*dpred$crop_std  + 
+                                              mean(p$b_CR + p$b_CRs[,1])*dpred$crop_std  + 
+                                              mean(p$b_SEE + p$b_SEEs[,1])*dpred$see_field 
 )
 
 dens(ras_bab$pred_bab_crop_conflict)
@@ -3354,6 +3303,8 @@ write.csv(ras_bab_sub , file="ras_baboon_crop_preds.csv")
 ###elephants###################
 
 ras_ele<-  read.csv("~/Dropbox/tza_wildlife_conflict/elephantRasterstacktopoints_survext.csv")
+ras_ele<-  read.csv("elephantRasterstacktopoints_survext.csv")
+
 ras_ele$settle_dist_km <- ras_ele$settle_dist/1000
 ras_ele$crop_std <- (ras_ele$crop-mean(dc$crop) )/sd(dc$crop) 
 ras_ele$c70_std <- (ras_ele$c70 -mean(dc$c70 ) )/ sd(dc$c70 ) 
@@ -3389,13 +3340,19 @@ ras_ele$pred_ele_crop_conflict <- logistic( mean(p$a + p$as[,2]) +
             mean(p$b_C70 + p$b_C70s[,2])*dpred$c70_std +
             mean(p$b_C2070 + p$b_C2070s[,2])*dpred$c2070_std +
             mean(p$b_BD + p$b_BDs[,2])*dpred$build_dens_std +
-            mean(p$b_CRs + p$b_CRs[,2])*dpred$crop_std  + 
-            mean(p$b_SEEs + p$b_SEEs[,2])*dpred$see_field 
+            mean(p$b_CR + p$b_CRs[,2])*dpred$crop_std  + 
+            mean(p$b_SEE + p$b_SEEs[,2])*dpred$see_field +
+            mean(p$b_RD + p$b_RDs[,2])*dpred$crop_std  + 
+            mean(p$b_RIV + p$b_RIVs[,2])*dpred$crop_std 
+
 )
 dens(ras_ele$pred_ele_crop_conflict)
 ras_ele_sub <- cbind( ras_ele[1:3] , ras_ele$pred_ele_crop_conflict)
 write.csv(ras_ele_sub , file="ras_elephant_crop_preds.csv")
 
+
+###export relevant map2stan objects
+save(dc,WAICcropmods, mc17,mc15, file="relevant_crop_plot_models.rdata")
 ######to catch a predator############
 ras_leo<-  read.csv("~/Dropbox/tza_wildlife_conflict/lionRasterstacktopoints_survext2.csv")
 
@@ -3880,7 +3837,7 @@ for (i in 1:2){
 }
 
 
-#############################crops
+#############################cropsn i think this is old and needs deleted
 colpal=c("blue" , "grey")
 
 #plot distance to settlement
@@ -3913,7 +3870,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc17, data=dpred , replace=list(village_index=av_z) )
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
   par( mar=c(4,4,1,1)+.1 )
   
   if(i==1){
