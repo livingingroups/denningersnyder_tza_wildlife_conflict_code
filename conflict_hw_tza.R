@@ -179,8 +179,8 @@ mc0 <- map2stan(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] ,
     a ~ normal( 0 , 1 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    as[species_index] ~ dnorm(a,sigma_s),
+    av[village_index] ~ dnorm(0,sigma_v),
+    as[species_index] ~ dnorm(0,sigma_s),
     c(sigma_v,sigma_s) ~ dexp(1)
     
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
@@ -334,7 +334,7 @@ mc3 <- map2stan(
     + (b_HH + b_HHs[species_index])*household_size_std,
     a ~ normal( 0 , 1 ),
     b_HH ~ normal( 0 , 1 ),
-    av[village_index] ~ dnorm(a,sigma_v),
+    av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_HHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
@@ -570,7 +570,7 @@ mc9 <- map2stan(
     logit(p) <- a + av[village_index] + as[species_index] + 
     (b_BD + b_BDs[species_index])*build_dens_std,
     c(a,b_BD) ~ normal( 0 , 1 ),
-    av[village_index] ~ dnorm(a,sigma_v),
+    av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_BDs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
@@ -647,7 +647,7 @@ mc11 <- map2stan(
     logit(p) <- a + av[village_index] + as[species_index] + 
     (b_MP + b_MPs[species_index])*months_planted_std,
     c(a,b_MP) ~ normal( 0 , 1 ),
-    av[village_index] ~ dnorm(a,sigma_v),
+    av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_MPs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
@@ -1110,7 +1110,7 @@ mc14 <- map2stan(
     + (b_MP + b_MPs[species_index])*months_planted_std 
     + (b_SEE + b_SEEs[species_index])*see_field,
     c(a,b_HH,b_FS,b_MP,b_SEE) ~ normal( 0 , 1 ),
-    av[village_index] ~ dnorm(a,sigma_v),
+    av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_HHs,b_FSs,b_MPs,b_SEEs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
@@ -1118,7 +1118,7 @@ mc14 <- map2stan(
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 
-precis(mc14nc , depth=2)
+precis(mc14 , depth=2)
 ###hh size
 
 plot_seq <- seq(from=min(dc$household_size_std) , to=max(dc$household_size_std) , length=30)
@@ -1230,9 +1230,6 @@ abline(v=mean(link2[,4]) , col="black" , lty=1)
 legend('topleft' , c("can't see field" , "see field") , col=c("grey" , "black") , lty=c(2,1))
 
 
-
-compare(mc0,mc1,mc2,mc3,mc4,mc5,mc6,mc7,mc8,mc9,mc10,mc11,mc12,mc13,mc14,mc15,mc12.3,mc12.4,mc12.9)
-
 #############landscape variables####################################
 mc15 <- map2stan(
   alist(
@@ -1246,7 +1243,7 @@ mc15 <- map2stan(
     + (b_BD + b_BDs[species_index])*build_dens_std 
     + (b_CR + b_CRs[species_index])*crop_std,
     c(a,b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_CR) ~ normal( 0 , 1 ),
-    av[village_index] ~ dnorm(a,sigma_v),
+    av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_SDs,b_C70s,b_C2070s,b_RIVs,b_RDs,b_BDs,b_CRs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
@@ -1482,8 +1479,8 @@ mc17 <- map2stan(
       (b_SEE + b_SEEs[species_index])*see_field,
     
     c(a,b_SD,b_C70,b_C2070,b_CR,b_BD,b_HH,b_FS,b_SEE,b_RD,b_RIV) ~ normal( 0 , 1 ),
-    c(b_HH,b_FS,b_SEE) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
+    c(b_HH,b_FS,b_SEE) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_SDs,b_C70s,b_C2070s,b_HHs,b_FSs,b_SEEs,b_CRs,b_BDs,b_RDs,b_RIVs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
@@ -2030,13 +2027,13 @@ dl$livestock_head_std <- (dl$livestock_head-mean(dl$livestock_head) )/sd(dl$live
 dl$species_index <- as.integer(as.factor(dl$species))
 dl$village_index <- as.integer(as.factor(dl$village))
 
-ml1 <- ulam(
+ml1 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] ,
+    logit(p) <- a + av[village_index] + as[species_index] ,
     a ~ normal( 0 , 1 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    as[species_index] ~ dnorm(a,sigma_s),
+    av[village_index] ~ dnorm(0,sigma_v),
+    as[species_index] ~ dnorm(0,sigma_s),
     c(sigma_v,sigma_s) ~ dexp(1)
     
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
@@ -2056,14 +2053,14 @@ precislist <- list(
 plot(precis(precislist , ci=.89) )
 
 ##settlement distance
-ml2 <- ulam(
+ml2 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] +  b_dSAs[species_index]*settle_dist_km_std ,
-    a ~ normal( 0 , 1 ),
-    b_dSA ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_dSAs)[species_index] ~ multi_normal( c(a,b_dSA) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] +  
+      (b_dSA + b_dSAs[species_index])*settle_dist_km_std ,
+    c(a,b_dSA) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_dSAs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
@@ -2099,14 +2096,14 @@ for (i in 1:2){
 }
 
 #####household size
-ml3 <- ulam(
+ml3 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_HHs[species_index]*household_size_std,
-    a ~ normal( 0 , 1 ),
-    b_HH ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_HHs)[species_index] ~ multi_normal( c(a,b_HH) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+      (b_HH + b_HHs[species_index])*household_size_std,
+    c(a,b_HH) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_HHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
@@ -2138,14 +2135,14 @@ for (i in 1:2){
 }
 
 ##########slope#####
-ml4 <- ulam(
+ml4 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_SLs[species_index]*gse_slope30m_std ,
-    a ~ normal( 0 , 1 ),
-    b_SL ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_SLs)[species_index] ~ multi_normal( c(a,b_SL) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+    (b_SL + b_SLs[species_index])*gse_slope30m_std ,
+    c(a,b_SL) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_SLs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
 
@@ -2177,33 +2174,33 @@ for (i in 1:2){
 }
 
 ####livestock head
-ml5 <- ulam(
+ml5 <- map2stan(
   alist(
     conflict  ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index]  + b_LSHs[species_index]*log_livestock_head_std ,
-    a ~ normal( 0 , 1 ),
-    b_LSH ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_LSHs)[species_index] ~ multi_normal( c(a,b_LSH) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index]  + 
+      (b_LSH + b_LSHs[species_index])*log_livestock_head_std ,
+    c(a,b_LSH) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_LSHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
-plot_seq <- seq(from=min(dl$livestock_head_std) , to=max(dl$livestock_head_std) , length=30)
+plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=30)
 
 precis(ml5 , depth=2)
 for (i in 1:2){
   
   dpred <- list(
     village_index=rep(1,30),
-    livestock_head_std=plot_seq,
+    log_livestock_head_std=plot_seq,
     species_index=rep(i,30)
   )
   
   link2 <- link(ml5, data=dpred , replace=list(village_index=av_z) )
   
-  if(i==1){plot(dl$hyena_l ~ dl$livestock_head_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")}
-  if(i==2){plot(dl$lion_l ~ dl$livestock_head_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")}
+  if(i==1){plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")}
+  if(i==2){plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")}
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
@@ -2212,16 +2209,16 @@ for (i in 1:2){
 }
 
 ###cover 70
-ml6 <- ulam(
+ml6 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_C70s[species_index]*c70_std ,
-    a ~ normal( 0 , 1 ),
-    b_C70 ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_C70s)[species_index] ~ multi_normal( c(a,b_C70) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+      (b_C70 + b_C70s[species_index])*c70_std ,
+    c(a, b_C70) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_C70s)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -2251,16 +2248,16 @@ for (i in 1:2){
 }
 
 #####cover 2070
-ml7 <- ulam(
+ml7 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_C2070s[species_index]*c2070_std ,
-    a ~ normal( 0 , 1 ),
-    b_C2070 ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_C2070s)[species_index] ~ multi_normal( c(a,b_C2070) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+      (b_C2070 + b_C2070s[species_index])*c2070_std ,
+      c(a,b_C2070) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_C2070s)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -2290,16 +2287,16 @@ for (i in 1:3){
 
 
 ####river
-ml8 <- ulam(
+ml8 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_RIVs[species_index]*river_std,
-    a ~ normal( 0 , 1 ),
-    b_RIV ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_RIVs)[species_index] ~ multi_normal( c(a,b_RIV) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    logit(p) <- a + av[village_index] + as[species_index] + 
+      (b_RIV + b_RIVs[species_index])*river_std ,
+      c(a,b_RIV) ~ normal( 0 , 1 ),
+      av[village_index] ~ dnorm(0,sigma_v),
+      c(as,b_RIVs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+      c(sigma_v,sigma_s) ~ dexp(1),
+    Rho ~ dlkjcorr(3)
     
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -2329,16 +2326,16 @@ for (i in 1:2){
 }
 
 ####building dens
-ml9 <- ulam(
+ml9 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_BDs[species_index]*build_dens_std,
-    a ~ normal( 0 , 1 ),
-    b_BD ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_BDs)[species_index] ~ multi_normal( c(a,b_BD) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] +
+    (b_BD + b_BDs[species_index])*build_dens_std ,
+    c(a,b_BD) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_BDs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -2368,16 +2365,16 @@ for (i in 1:2){
 
 
 ###road
-ml10 <- ulam(
+ml10 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_RDs[species_index]*road_std,
-    a ~ normal( 0 , 1 ),
-    b_RD ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_RDs)[species_index] ~ multi_normal( c(a,b_RD) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+      (b_RD + b_RDs[species_index])*road_std ,
+    c(a,b_RD) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_RDs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -2406,16 +2403,16 @@ for (i in 1:2){
 }
 
 ###guards
-ml11 <- ulam(
+ml11 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + b_GUs[species_index]*guard_ave_day_std,
-    a ~ normal( 0 , 1 ),
-    b_GU ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_GUs)[species_index] ~ multi_normal( c(a,b_GU) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] + 
+    (b_GU + b_GUs[species_index])*guard_ave_day_std,
+    c(a,b_GU) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_GUs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
@@ -2442,6 +2439,7 @@ for (i in 1:2){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
 }
+
 
 #######crop prto stuff
 # 
@@ -2488,19 +2486,20 @@ for (i in 1:2){
 
 
 #######interaction livestock head
-ml13 <- ulam(
+ml13 <- map2stan(
   alist(
     conflict  ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index]  + b_LSHs[species_index]*livestock_head_std + (b_GUs[species_index] + b_GUxLSHs[species_index]*livestock_head_std)*guard_ave_day_std ,
-    a ~ normal( 0 , 1 ),
-    c(b_LSH,b_GU ,b_GUxLSH) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_LSHs,b_GUs,b_GUxLSHs)[species_index] ~ multi_normal( c(a,b_LSH,b_GU,b_GUxLSH) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index]  + 
+    (b_LSH + b_LSHs[species_index])*log_livestock_head_std + 
+    (b_GU + b_GUs[species_index] + (b_GUxLSH + b_GUxLSHs[species_index])*log_livestock_head_std)*guard_ave_day_std ,
+    c(a,b_LSH,b_GU ,b_GUxLSH) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_LSHs,b_GUs,b_GUxLSHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
-plot_seq <- seq(from=min(dl$livestock_head_std) , to=max(dl$livestock_head_std) , length=30)
+plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=30)
 colpal1=brewer.pal(5,"Blues")
 colpal2=brewer.pal(5,"Greens")
 
@@ -2511,16 +2510,16 @@ for (i in 1:2){
   for(j in 1:5){
     dpred <- list(
       village_index=rep(1,30),
-      livestock_head_std=plot_seq,
+      log_livestock_head_std=plot_seq,
       species_index=rep(i,30),
       guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , 30) 
     )
     
     link2 <- link(ml13, data=dpred , replace=list(village_index=av_z) )
     
-    if(i==1 & j==1){plot(dl$hyena_l ~ dl$livestock_head_std, col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")}
+    if(i==1 & j==1){plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")}
     
-    if(i==2 & j==1){plot(dl$lion_l ~ dl$livestock_head_std , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")
+    if(i==2 & j==1){plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")
     }
     
     pred_mean <- apply(link2 , 2 , mean)
@@ -2533,7 +2532,7 @@ for (i in 1:2){
   for(j in 1:5){
     dpred <- list(
       village_index=rep(1,30),
-      livestock_head_std=plot_seq,
+      log_livestock_head_std=plot_seq,
       species_index=rep(i,30),
       #household_size_std=rep(j , 30) 
       guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , 30) 
@@ -2541,7 +2540,7 @@ for (i in 1:2){
     
     link2 <- link(ml13, data=dpred , replace=list(village_index=av_z) )
     
-    if(i==1){plot(dl$hyena_l ~ dl$livestock_head_std, col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")
+    if(i==1){plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log livestock head standardized")
       pred_mean <- apply(link2 , 2 , mean)
       lines(pred_mean ~ plot_seq , lw=2, col=colpal1[j] , lty=1)
         for (k in sample( c(1:1000) , 100) ){
@@ -2549,7 +2548,7 @@ for (i in 1:2){
         }
       }
     
-    if(i==2){plot(dl$lion_l ~ dl$livestock_head_std , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")
+    if(i==2){plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log_livestock head standardized")
       pred_mean <- apply(link2 , 2 , mean)
       lines(pred_mean ~ plot_seq , lw=2, col=colpal2[j] , lty=1)
         for (k in sample( c(1:1000) , 100) ){
@@ -2561,44 +2560,48 @@ for (i in 1:2){
 }
 
 #######house level
-ml14 <- ulam(
+ml14 <- map2stan(
   alist(
     conflict  ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index]  + b_LSHs[species_index]*livestock_head_std + b_HHs[species_index]*household_size_std + b_GUs[species_index]*guard_ave_day_std ,
-    a ~ normal( 0 , 1 ),
-    c(b_LSH,b_HH,b_GU) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_LSHs,b_HHs,b_GUs)[species_index] ~ multi_normal( c(a,b_LSH,b_HH,b_GU) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index]  + 
+      (b_LSH + b_LSHs[species_index])*log_livestock_head_std + 
+      (b_HH + b_HHs[species_index])*household_size_std + 
+      (b_GU + b_GUs[species_index])*guard_ave_day_std, 
+    c(a,b_LSH,b_HH,b_GU) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_LSHs,b_HHs,b_GUs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 
 
 #######house level w/ interaction
-ml14.1 <- ulam(
+ml14.1 <- map2stan(
   alist(
     conflict  ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index]  + b_LSHs[species_index]*livestock_head_std + b_HHs[species_index]*household_size_std + (b_GUs[species_index] + b_GUxLSHs[species_index]*livestock_head_std)*guard_ave_day_std ,
-    a ~ normal( 0 , 1 ),
-    c(b_LSH,b_HH,b_GU ,b_GUxLSH) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_LSHs,b_HHs,b_GUs,b_GUxLSHs)[species_index] ~ multi_normal( c(a,b_LSH,b_HH,b_GU,b_GUxLSH) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index]  + 
+      (b_LSH + b_LSHs[species_index])*log_livestock_head_std + 
+      (b_HH + b_HHs[species_index])*household_size_std + 
+      (b_GU + b_GUs[species_index] + (b_GUxLSH + b_GUxLSHs[species_index])*log_livestock_head_std)*guard_ave_day_std ,
+    c(a,b_LSH,b_HH,b_GU ,b_GUxLSH) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_LSHs,b_HHs,b_GUs,b_GUxLSHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 precis(ml14.1 , depth=2)
 
 ###interaction between num guards and livestock size
-plot_seq <- seq(from=min(dl$livestock_head_std) , to=max(dl$livestock_head_std) , length=30)
+plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=30)
 
 for (i in 1:2){
   for(j in 1:5){
     
     dpred <- list(
       village_index=rep(1,30),
-      livestock_head_std=plot_seq,
+      log_livestock_head_std=plot_seq,
       species_index=rep(i,30),
       household_size_std=rep(0,30), 
       guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , 30) 
@@ -2606,7 +2609,7 @@ for (i in 1:2){
     
     link2 <- link(ml14.1, data=dpred , replace=list(village_index=av_z) )
     
-    if(i==1){plot(dl$hyena_l ~ dl$livestock_head_std, col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")
+    if(i==1){plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log livestock head standardized")
       pred_mean <- apply(link2 , 2 , mean)
       lines(pred_mean ~ plot_seq , lw=2, col=colpal1[j] , lty=1)
       for (k in sample( c(1:1000) , 100) ){
@@ -2614,7 +2617,7 @@ for (i in 1:2){
       }
     }
     
-    if(i==2){plot(dl$lion_l ~ dl$livestock_head_std , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="livestock head standardized")
+    if(i==2){plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log livestock head standardized")
       pred_mean <- apply(link2 , 2 , mean)
       lines(pred_mean ~ plot_seq , lw=2, col=colpal2[j] , lty=1)
       for (k in sample( c(1:1000) , 100) ){
@@ -2633,7 +2636,7 @@ for (i in 1:2){
   
   dpred <- list(
     village_index=rep(1,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=plot_seq 
@@ -2658,13 +2661,13 @@ for (i in 1:2){
   
   dpred <- list(
     village_index=rep(1,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=plot_seq, 
     guard_ave_day_std=rep(0,30) 
   )
   
-  link2 <- link(ml3, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml14.1, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){plot(dl$hyena_l ~ dl$household_size_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size standardized")}
   if(i==2){plot(dl$lion_l ~ dl$household_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size standardized")}
@@ -2696,16 +2699,22 @@ for (i in 1:2){
 
 
 #########landscape
-ml15 <- ulam(
+ml15 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] +  b_SDs[species_index]*settle_dist_km_std + b_C70s[species_index]*c70_std + b_C2070s[species_index]*c2070_std + b_RIVs[species_index]*river_std  + b_RDs[species_index]*road_std + b_BDs[species_index]*build_dens_std + b_SLs[species_index]*gse_slope30m_std  ,
-    a ~ normal( 0 , 1 ),
-    c(b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_SL) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_SDs,b_C70s,b_C2070s,b_RIVs,b_RDs,b_BDs,b_SLs)[species_index] ~ multi_normal( c(a,b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_SL) , Rho , sigma_s),
+    logit(p) <- a + av[village_index] + as[species_index] +  
+      (b_SD + b_SDs[species_index])*settle_dist_km_std +
+      (b_C70 + b_C70s[species_index])*c70_std +
+      (b_C2070 + b_C2070s[species_index])*c2070_std +
+      (b_RIV + b_RIVs[species_index])*river_std +
+      (b_RD + b_RDs[species_index])*road_std +
+      (b_BD + b_BDs[species_index])*build_dens_std +
+      (b_SL + b_SLs[species_index])*gse_slope30m_std  ,
+    c(a,b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_SL) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_SDs,b_C70s,b_C2070s,b_RIVs,b_RDs,b_BDs,b_SLs)[species_index] ~ dmvnormNC(sigma_s,Rho) ,
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
   ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE )
 
@@ -2769,7 +2778,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(ml2, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml15, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){plot(dl$hyena_l ~ dl$c70_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="standardize km from settlement")}
   if(i==2){plot(dl$lion_l ~ dl$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="standardize km from settlement")}
@@ -2801,7 +2810,7 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(ml2, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml15, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){plot(dl$hyena_l ~ dl$c2070_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density")}
   if(i==2){plot(dl$lion_l ~ dl$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density")}
@@ -2817,45 +2826,31 @@ axis( 1 , at= ( seq(from=0 , to=0.7 , by=0.1) - mean(dc$c2070))/sd(dc$c2070) , l
 
 
 
-#######global mofo won't converge
-ml16 <- ulam(
-  alist(
-    conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] + LS + HH,
-    LS <- b_SDs[species_index]*settle_dist_km_std + b_C70s[species_index]*c70_std + b_C2070s[species_index]*c2070_std + b_RIVs[species_index]*river_std  + b_RDs[species_index]*road_std + b_BDs[species_index]*build_dens_std + b_SLs[species_index]*gse_slope30m_std,
-    HH <-  b_LSHs[species_index]*livestock_head_std + b_HHs[species_index]*household_size_std + (b_GUs[species_index] + b_GUxLSHs[species_index]*livestock_head_std)*guard_ave_day_std + (b_LPNCs[species_index] + b_GUxLPNCs[species_index]*guard_ave_day)*lv_prot_night_contain ,
-    a ~ normal( 0 , 1 ),
-    c(b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_SL) ~ normal( 0 , 0.5 ),
-    c(b_LSH,b_HH,b_GU ,b_GUxLSH,b_LPNC,b_GUxLPNC) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_SDs,b_C70s,b_C2070s,b_RIVs,b_RDs,b_BDs,b_SLs,b_LSHs,b_HHs,b_GUs,b_GUxLSHs,b_LPNCs,b_GUxLPNCs)[species_index] ~ multi_normal( c(a,b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_SL,b_LSH,b_HH,b_GU,b_GUxLSH,b_LPNC,b_GUxLPNC) , Rho , sigma_s),
-    c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
-    
-  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
 
 ##########global mofo livestock
-ml16.1 <- ulam(
+ml16.1 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <- av[village_index] + as[species_index] +  
-      b_SDs[species_index]*settle_dist_km_std + 
-      b_C70s[species_index]*c70_std + 
-      b_RDs[species_index]*road_std + 
-      b_BDs[species_index]*build_dens_std + 
-      b_SLs[species_index]*gse_slope30m_std +  
-      b_LSHs[species_index]*livestock_head_std + 
-      b_HHs[species_index]*household_size_std + 
-      (b_GUs[species_index] + b_GUxLSHs[species_index]*livestock_head_std)*guard_ave_day_std,
+    logit(p) <- a + av[village_index] + as[species_index] +  
+      (b_SD + b_SDs[species_index])*settle_dist_km_std +
+      (b_C70 + b_C70s[species_index])*c70_std +
+      (b_C2070 + b_C2070s[species_index])*c2070_std +
+      (b_RIV + b_RIVs[species_index])*river_std +
+      (b_RD + b_RDs[species_index])*road_std +
+      (b_BD + b_BDs[species_index])*build_dens_std +
+      (b_SL + b_SLs[species_index])*gse_slope30m_std +   
+      (b_LSH + b_LSHs[species_index])*log_livestock_head_std + 
+      (b_HH + b_HHs[species_index])*household_size_std + 
+      (b_GU + b_GUs[species_index] + (b_GUxLSH + b_GUxLSHs[species_index])*log_livestock_head_std)*guard_ave_day_std ,
     a ~ normal( 0 , 1 ),
-    c(b_SD,b_C70,b_RD,b_BD,b_SL) ~ normal( 0 , 0.5 ),
-    c(b_LSH,b_HH,b_GU ,b_GUxLSH) ~ normal( 0 , 0.5 ),
-    av[village_index] ~ dnorm(a,sigma_v),
-    c(as,b_SDs,b_C70s,b_RDs,b_BDs,b_SLs,b_LSHs,b_HHs,b_GUs,b_GUxLSHs)[species_index] ~ multi_normal( c(a,b_SD,b_C70,b_RD,b_BD,b_SL,b_LSH,b_HH) , Rho , sigma_s),
+    c(b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_SL) ~ normal( 0 , 1 ),
+    c(b_LSH,b_HH,b_GU ,b_GUxLSH) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_SDs,b_C70s,b_C2070s,b_RIVs,b_RDs,b_BDs,b_SLs,b_LSHs,b_HHs,b_GUs,b_GUxLSHs)[species_index] ~ dmvnormNC(sigma_s,Rho) ,
     c(sigma_v,sigma_s) ~ dexp(1),
-    Rho ~ lkj_corr(3)
+    Rho ~ dlkjcorr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,  control=list(adapt_delta=0.999))
+  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
 
 #########SDistance
 
@@ -2874,7 +2869,7 @@ for (i in 1:2){
     road_std=rep(0,30),
     build_dens_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -2917,7 +2912,7 @@ for (i in 1:2){
     road_std=rep(0,30),
     build_dens_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -2939,10 +2934,51 @@ for (i in 1:2){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=0 , to=0.25 , by=0.05) - mean(dl$c70))/sd(dl$c70) , labels= seq(from=0 , to=0.25 , by=0.05) )
+  axis( 1 , at= ( seq(from=0 , to=0.8 , by=0.1) - mean(dl$c70))/sd(dl$c70) , labels= seq(from=0 , to=0.8 , by=0.1) )
   dev.off()
 }
 
+######cover 2070
+plot_seq <- seq(from=min(dl$c2070_std) , to=max(dl$c2070_std) , length=30)
+av_z <- matrix(0,1000,length(unique(dl$village_index))) #need to add zeros in VE to plot main effect
+
+ylabels=c("probability hyena livestock conflict" , "probability lion livestock conflict")
+for (i in 1:2){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    settle_dist_km_std=rep(0,30),
+    c2070_std=plot_seq,
+    c70_std=rep(0,30),
+    river_std=rep(0,30),
+    road_std=rep(0,30),
+    build_dens_std=rep(0,30),
+    gse_slope30m_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
+    species_index=rep(i,30),
+    household_size_std=rep(0,30), 
+    guard_ave_day_std=rep(0,30), 
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "c2070_livestock_global_conflict_hyena.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$c2070_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density", xaxt='n', cex.lab=1.3)}
+  if(i==2){
+    pdf(file = "c2070_livestock_global_conflict_lion.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n', cex.lab=1.3)}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  axis( 1 , at= ( seq(from=0 , to=0.8 , by=0.1) - mean(dl$c2070))/sd(dl$c2070) , labels= seq(from=0 , to=0.8 , by=0.1) )
+  dev.off()
+}
 
 ########road
 
@@ -2960,7 +2996,7 @@ for (i in 1:2){
     road_std=plot_seq,
     build_dens_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -2982,8 +3018,8 @@ for (i in 1:2){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=0 , to=0.04 , by=0.005) - mean(dl$road))/sd(dl$road) , labels= seq(from=0 , to=0.04 , by=0.005) )
-    dev.off()
+  axis( 1 , at= ( seq(from=0 , to=0.7 , by=0.1) - mean(dl$road))/sd(dl$road) , labels= seq(from=0 , to=0.7 , by=0.1) )
+  dev.off()
 }
 
 #buiding density
@@ -3001,7 +3037,7 @@ for (i in 1:2){
     river_std=rep(0,30),
     road_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -3023,9 +3059,53 @@ for (i in 1:2){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=0 , to=250 , by=25) - mean(dl$build_dens))/sd(dl$build_dens) , labels= seq(from=0 , to=250 , by=25) )
+  axis( 1 , at= ( seq(from=0 , to=120 , by=10) - mean(dl$build_dens))/sd(dl$build_dens) , labels= seq(from=0 , to=120 , by=10) )
   dev.off()
 }
+##
+##########river
+
+
+plot_seq <- seq(from=min(dl$river_std) , to=max(dl$river_std) , length=30)
+
+for (i in 1:2){
+  
+  dpred <- list(
+    
+    village_index=rep(1,30),
+    settle_dist_km_std=rep(0,30),
+    c70_std=rep(0,30),
+    c2070_std=rep(0,30),
+    road_std=rep(0,30),
+    river_std=plot_seq,
+    build_dens_std=rep(0,30),
+    gse_slope30m_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
+    species_index=rep(i,30),
+    household_size_std=rep(0,30), 
+    guard_ave_day_std=rep(0,30), 
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "river_livestock_global_conflict_hyena.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$hyena_l ~ dl$river_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density", xaxt='n', cex.lab=1.3)}
+  if(i==2){
+    pdf(file = "river_livestock_global_conflict_lion.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dl$lion_l ~ dl$river_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density", xaxt='n', cex.lab=1.3)}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  axis( 1 , at= ( seq(from=0 , to=0.70 , by=0.1) - mean(dl$river))/sd(dl$river) , labels= seq(from=0 , to=0.70 , by=0.1) )
+  dev.off()
+}
+
 
 ##slope
 plot_seq <- seq(from=min(dl$gse_slope30m_std) , to=max(dl$gse_slope30m_std) , length=30)
@@ -3041,7 +3121,7 @@ for (i in 1:2){
     c2070_std=rep(0,30),
     river_std=rep(0,30),
     road_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -3069,12 +3149,12 @@ for (i in 1:2){
 }
 
 ###livestock head
-plot_seq <- seq(from=min(dl$livestock_head_std) , to=max(dl$livestock_head_std) , length=30)
+plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=30)
 
 for (i in 1:2){
   dpred <- list(
     village_index=rep(1,30),
-    livestock_head_std=plot_seq,
+    log_livestock_head_std=plot_seq,
     gse_slope30m_std=rep(0,30),
     build_dens_std=rep(0,30),
     settle_dist_km_std=rep(0,30),
@@ -3091,19 +3171,19 @@ for (i in 1:2){
   link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "livestock head_livestock_global_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "log_livestock head_livestock_global_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$hyena_l ~ dl$livestock_head_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number of livestock head", xaxt='n', cex.lab=1.3)}
+    plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log(number of livestock head)", xaxt='n', cex.lab=1.3)}
   if(i==2){
-    pdf(file = "livestock head_livestock_global_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "log_livestock head_livestock_global_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$lion_l ~ dl$livestock_head_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number of livestock head", xaxt='n', cex.lab=1.3)}
+    plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log(number of livestock head)", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=0 , to=800 , by=100) - mean(dl$livestock_head))/sd(dl$livestock_head) , labels= seq(from=0 , to=800 , by=100 ))
+  axis( 1 , at= ( seq(from=1 , to=7 , by=1) - mean(dl$log_livestock_head))/sd(dl$log_livestock_head) , labels= seq(from=1 , to=7 , by=1 ))
   dev.off()
 }
 
@@ -3116,7 +3196,7 @@ for (i in 1:2){
   dpred <- list(
     village_index=rep(1,30),
     household_size_std=plot_seq,
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
     build_dens_std=rep(0,30),
     settle_dist_km_std=rep(0,30),
@@ -3157,7 +3237,7 @@ for (i in 1:2){
     village_index=rep(1,30),
     guard_ave_day_std=plot_seq,
     household_size_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
     build_dens_std=rep(0,30),
     settle_dist_km_std=rep(0,30),
@@ -3192,7 +3272,7 @@ colpal1=brewer.pal(7,"Reds")
 colpal2=brewer.pal(7,"Oranges")
 colpal1=colpal1[3:7]
 colpal2=colpal2[3:7]
-plot_seq <- seq(from=min(dl$livestock_head_std) , to=max(dl$livestock_head_std) , length=30)
+plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=30)
 
 for (i in 1:2){
   par(mfrow=c(1,5))
@@ -3201,7 +3281,7 @@ for (i in 1:2){
     
     dpred <- list(
       village_index=rep(1,30),
-      livestock_head_std=plot_seq,
+      log_livestock_head_std=plot_seq,
       species_index=rep(i,30),
       household_size_std=rep(0,30), 
       guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , 30),
@@ -3211,6 +3291,7 @@ for (i in 1:2){
       c70_std=rep(0,30),
       c2070_std=rep(0,30),
       road_std=rep(0,30),
+      river_std=rep(0,30),
       species_index=rep(i,30),
       guard_ave_day_std=rep(0,30)
     )
@@ -3218,26 +3299,26 @@ for (i in 1:2){
     link2 <- link(ml16.1, data=dpred , replace=list(village_index=av_z) )
     
     if(i==1){
-      plot(dl$hyena_l ~ dl$livestock_head_std, col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number livestock head", xaxt='n', cex.lab=1.3)
+      plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number livestock head", xaxt='n', cex.lab=1.3)
       title(main=paste("number guards = ", j-1) )
       pred_mean <- apply(link2 , 2 , mean)
       lines(pred_mean ~ plot_seq , lw=2, col=colpal1[j] , lty=1)
       for (k in sample( c(1:1000) , 100) ){
         lines( link2[k,] ~ plot_seq , lw=3, col=col.alpha(colpal1[j], alpha=0.1) , lty=1)
       }
-      axis( 1 , at= ( seq(from=0 , to=800 , by=100) - mean(dl$livestock_head))/sd(dl$livestock_head) , labels= seq(from=0 , to=800 , by=100 ))
+      axis( 1 , at= ( seq(from=1 , to=7 , by=1) - mean(dl$log_livestock_head))/sd(dl$log_livestock_head) , labels= seq(from=1 , to=7 , by=1 ))
       
     }
     
     if(i==2){
-      plot(dl$lion_l ~ dl$livestock_head_std , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number livestock head", xaxt='n', cex.lab=1.3)
-      title(main=paste("num. guards = ", j-1) )
+      plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number livestock head", xaxt='n', cex.lab=1.3)
+      title(main=paste("number guards = ", j-1) )
       pred_mean <- apply(link2 , 2 , mean)
       lines(pred_mean ~ plot_seq , lw=2, col=colpal2[j] , lty=1)
       for (k in sample( c(1:1000) , 100) ){
         lines( link2[k,] ~ plot_seq , lw=3, col=col.alpha(colpal2[j], alpha=0.1) , lty=1)
       }
-      axis( 1 , at= ( seq(from=0 , to=800 , by=100) - mean(dl$livestock_head))/sd(dl$livestock_head) , labels= seq(from=0 , to=800 , by=100 ))
+      axis( 1 , at= ( seq(from=1 , to=7 , by=1) - mean(dl$log_livestock_head))/sd(dl$log_livestock_head) , labels= seq(from=1 , to=7 , by=1 ))
       
     }
     
@@ -3246,7 +3327,8 @@ for (i in 1:2){
 
 #save by hand 4 x 20
 
-
+WAICstockmod <- compare(ml1,ml2,ml3,ml4,ml5,ml6,ml7,ml8,ml9,ml10,ml11,ml13,ml14,ml14.1,ml15,ml16.1)
+write.csv(WAICstockmod , "WAICstockmod.csv")
 ##########################################
 #############raster preds################
 #########################################
@@ -3353,8 +3435,11 @@ write.csv(ras_ele_sub , file="ras_elephant_crop_preds.csv")
 
 ###export relevant map2stan objects
 save(dc,WAICcropmods, mc17,mc15, file="relevant_crop_plot_models.rdata")
+save(dl,WAICstockmod,ml16.1,ml14,file="relevant_livestock_plot_models.rdata")
+
 ######to catch a predator############
-ras_leo<-  read.csv("~/Dropbox/tza_wildlife_conflict/lionRasterstacktopoints_survext2.csv")
+# ras_leo<-  read.csv("~/Dropbox/tza_wildlife_conflict/lionRasterstacktopoints_survext2.csv")
+ras_leo<-  read.csv("lionRasterstacktopoints_survext2.csv")
 
 ras_leo$settle_dist_km <- ras_leo$settle_dist/1000
 ras_leo$c70_std <- (ras_leo$c70 -mean(dl$c70 ) )/ sd(dl$c70 ) 
@@ -3362,18 +3447,60 @@ ras_leo$road_std <- (ras_leo$road -mean(dl$road ) )/ sd(dl$road)
 ras_leo$build_dens_std <- (ras_leo$build_dens-mean(dl$build_dens ) )/ sd(dl$build_dens) 
 ras_leo$gse_slope30m_std <- (ras_leo$gse_slope30m-mean(dl$gse_slope30m) )/sd(dl$gse_slope30m) 
 ras_leo$settle_dist_km_std <- (ras_leo$settle_dist_km-mean(dl$settle_dist_km ) )/ sd(dl$settle_dist_km) 
+ras_leo$c2070_std <- (ras_leo$c2070 -mean(dl$c2070 ) )/ sd(dl$c2070 ) 
+ras_leo$river_std <- (ras_leo$river -mean(dl$river ) )/ sd(dl$river) 
 ras_leo$species_index <- 2
  
 
+p <- extract.samples(ml16.1)
+
+dpred <- list(
+  village_index=rep(1,nrow(ras_leo)),
+  settle_dist_km_std=ras_leo$settle_dist_km_std,
+  c70_std = ras_leo$c70_std,
+  road_std= ras_leo$road_std,
+  c2070_std = ras_leo$c2070_std,
+  river_std= ras_leo$river_std,
+  build_dens_std=ras_leo$build_dens_std,
+  gse_slope30m_std= ras_leo$gse_slope30m_st,
+  household_size_std=rep(0,nrow(ras_leo)),
+  log_livestock_head_std=rep(0,nrow(ras_leo)),
+  guard_ave_day_std=rep(0,nrow(ras_leo)),
+  species_index=ras_leo$species_index
+)
+
+##predict conflict using all raster data and model
+ras_leo$pred_leo_crop_conflict <-0
+ras_leo$pred_leo_crop_conflict <- 
+  logistic( mean(p$a + p$as[,2]) + 
+              mean(p$b_SD + p$b_SDs[,2])*dpred$settle_dist_km_std  + 
+              mean(p$b_C70 + p$b_C70s[,2])*dpred$c70_std +
+              mean(p$b_RD + p$b_RDs[,2])*dpred$road_std +
+              mean(p$b_C2070 + p$b_C2070s[,2])*dpred$c2070_std +
+              mean(p$b_RIV + p$b_RIVs[,2])*dpred$river_std +
+              mean(p$b_BD + p$b_BDs[,2])*dpred$build_dens_std +
+              mean(p$b_SL + p$b_SLs[,2])*dpred$gse_slope30m_std   
+  )
+
+par(mfrow=c(1,1))
+dens(ras_leo$pred_leo_crop_conflict)
+
+ras_leo_sub <- cbind( ras_leo[1:3] , ras_leo$pred_leo_crop_conflict)
+write.csv(ras_leo_sub , file="ras_leo_deadstock_preds_5_08_2020.csv")
+
 
 ########hyena
-ras_hyena<-  read.csv("~/Dropbox/tza_wildlife_conflict/hyenaRasterstacktopoints_survext2.csv")
+# ras_hyena<-  read.csv("~/Dropbox/tza_wildlife_conflict/hyenaRasterstacktopoints_survext2.csv")
+ras_hyena<-  read.csv("hyenaRasterstacktopoints_survext2.csv")
+
 ras_hyena$settle_dist_km <- ras_hyena$settle_dist/1000
 ras_hyena$c70_std <- (ras_hyena$c70 -mean(dl$c70 ) )/ sd(dl$c70 ) 
 ras_hyena$road_std <- (ras_hyena$road -mean(dl$road ) )/ sd(dl$road) 
 ras_hyena$build_dens_std <- (ras_hyena$build_dens-mean(dl$build_dens ) )/ sd(dl$build_dens) 
 ras_hyena$gse_slope30m_std <- (ras_hyena$gse_slope30m-mean(dl$gse_slope30m) )/sd(dl$gse_slope30m) 
 ras_hyena$settle_dist_km_std <- (ras_hyena$settle_dist_km-mean(dl$settle_dist_km ) )/ sd(dl$settle_dist_km) 
+ras_hyena$c2070_std <- (ras_hyena$c2070 -mean(dl$c2070 ) )/ sd(dl$c2070 ) 
+ras_hyena$river_std <- (ras_hyena$river -mean(dl$river ) )/ sd(dl$river) 
 ras_hyena$species_index <- 1
 
 p <- extract.samples(ml16.1)
@@ -3383,20 +3510,25 @@ dpred <- list(
   settle_dist_km_std=ras_hyena$settle_dist_km_std,
   c70_std = ras_hyena$c70_std,
   road_std= ras_hyena$road_std,
+  c2070_std = ras_hyena$c2070_std,
+  river_std= ras_hyena$river_std,
   build_dens_std=ras_hyena$build_dens_std,
   gse_slope30m_std= ras_hyena$gse_slope30m_st,
   household_size_std=rep(0,nrow(ras_hyena)),
-  livestock_head_std=rep(0,nrow(ras_hyena)),
+  log_livestock_head_std=rep(0,nrow(ras_hyena)),
   guard_ave_day_std=rep(0,nrow(ras_hyena)),
   species_index=ras_hyena$species_index
 )
 
+##predict conflict using all raster data and model
 ras_hyena$pred_hyena_crop_conflict <-0
 ras_hyena$pred_hyena_crop_conflict <- 
   logistic( mean(p$a + p$as[,1]) + 
       mean(p$b_SD + p$b_SDs[,1])*dpred$settle_dist_km_std  + 
       mean(p$b_C70 + p$b_C70s[,1])*dpred$c70_std +
       mean(p$b_RD + p$b_RDs[,1])*dpred$road_std +
+      mean(p$b_C2070 + p$b_C2070s[,1])*dpred$c2070_std +
+      mean(p$b_RIV + p$b_RIVs[,1])*dpred$river_std +
       mean(p$b_BD + p$b_BDs[,1])*dpred$build_dens_std +
       mean(p$b_SL + p$b_SLs[,1])*dpred$gse_slope30m_std   
 )
@@ -3405,18 +3537,16 @@ par(mfrow=c(1,1))
 dens(ras_hyena$pred_hyena_crop_conflict)
 
 ras_hyena_sub <- cbind( ras_hyena[1:3] , ras_hyena$pred_hyena_crop_conflict)
-write.csv(ras_hyena_sub , file="ras_hyena_deadstock_preds.csv")
+write.csv(ras_hyena_sub , file="ras_hyena_deadstock_preds_5_08_2020.csv")
 
 
 ##############other graphs of imporatnce#
-#WAIC stuff
-compare(mc0,mc1,mc2,mc3,mc4,mc5,mc6,mc7,mc8,mc9,mc10,mc11,mc13,mc14,mc15,mc17)
-p <- extract.samples(ml16.1)
-
 p_livestock_global <- list(
     b_BD_hyena = p$b_BD + p$b_BDs[,1],
     b_C70_hyena = p$b_C70 + p$b_C70s[,1],
-    b_RD_hyena = p$b_BD + p$b_BDs[,1],
+    b_C2070_hyena = p$b_C2070 + p$b_C2070s[,1],
+    b_RD_hyena = p$b_RD + p$b_RDs[,1],
+    b_RIV_hyena = p$b_RIV + p$b_RIVs[,1],
     b_SD_hyena = p$b_SD + p$b_SDs[,1],
     b_SL_hyena = p$b_SL + p$b_SLs[,1],
     b_GUxLSH_hyena = p$b_GUxLSH + p$b_GUxLSHs[,1] ,
@@ -3425,7 +3555,9 @@ p_livestock_global <- list(
     b_LSH_hyena = p$b_LSH + p$b_LSHs[,1],
     b_BD_lion = p$b_BD + p$b_BDs[,2],
     b_C70_lion = p$b_C70 + p$b_C70s[,2],
-    b_RD_lion = p$b_BD + p$b_BDs[,2],
+    b_C2070_lion = p$b_C2070 + p$b_C2070s[,2],
+    b_RD_lion = p$b_RD + p$b_RDs[,2],
+    b_RIV_lion = p$b_RIV + p$b_RIVs[,2],
     b_SD_lion = p$b_SD + p$b_SDs[,2],
     b_SL_lion = p$b_SL + p$b_SLs[,2],
     b_GUxLSH_lion = p$b_GUxLSH + p$b_GUxLSHs[,2],
@@ -3466,8 +3598,12 @@ pdf(file = "crop_conflict_species_parameter_dotplots.pdf",   width = 7, height =
 plot(precis(p_crop_global))
 dev.off()
 
+write.csv( precis(mc17 , depth=2) , file="crop_global_model_medium_params.csv" )
+write.csv( precis(mc17 , depth=3) , file="crop_global_model_long_params.csv" )
+write.csv( precis(ml16.1 , depth=2) , file="livestock_global_model_medium_params.csv" )
+write.csv( precis(ml16.1 , depth=3) , file="livestock_global_model_long_params.csv" )
 
-######################landscap only plots########################3
+######################landscape only plots########################3
 ##########3livestock conflict landscape model preds###############
 
 #########SDistance
@@ -3489,7 +3625,7 @@ for (i in 1:2){
     road_std=rep(0,30),
     build_dens_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -3531,7 +3667,7 @@ for (i in 1:2){
     road_std=rep(0,30),
     build_dens_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -3574,7 +3710,7 @@ for (i in 1:2){
     road_std=plot_seq,
     build_dens_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -3615,7 +3751,7 @@ for (i in 1:2){
     river_std=rep(0,30),
     road_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -3655,7 +3791,7 @@ for (i in 1:2){
     c2070_std=rep(0,30),
     river_std=rep(0,30),
     road_std=rep(0,30),
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     species_index=rep(i,30),
     household_size_std=rep(0,30), 
     guard_ave_day_std=rep(0,30), 
@@ -3683,12 +3819,12 @@ for (i in 1:2){
 }
 
 ###livestock head
-plot_seq <- seq(from=min(dl$livestock_head_std) , to=max(dl$livestock_head_std) , length=30)
+plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=30)
 
 for (i in 1:2){
   dpred <- list(
     village_index=rep(1,30),
-    livestock_head_std=plot_seq,
+    log_livestock_head_std=plot_seq,
     gse_slope30m_std=rep(0,30),
     build_dens_std=rep(0,30),
     settle_dist_km_std=rep(0,30),
@@ -3707,11 +3843,11 @@ for (i in 1:2){
   if(i==1){
     pdf(file = "livestock head_livestock_global_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$hyena_l ~ dl$livestock_head_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number of livestock head", xaxt='n', cex.lab=1.3)}
+    plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number of livestock head", xaxt='n', cex.lab=1.3)}
   if(i==2){
     pdf(file = "livestock head_livestock_global_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$lion_l ~ dl$livestock_head_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number of livestock head", xaxt='n', cex.lab=1.3)}
+    plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="number of livestock head", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
@@ -3730,7 +3866,7 @@ for (i in 1:2){
   dpred <- list(
     village_index=rep(1,30),
     household_size_std=plot_seq,
-    livestock_head_std=rep(0,30),
+    log_livestock_head_std=rep(0,30),
     gse_slope30m_std=rep(0,30),
     build_dens_std=rep(0,30),
     settle_dist_km_std=rep(0,30),
