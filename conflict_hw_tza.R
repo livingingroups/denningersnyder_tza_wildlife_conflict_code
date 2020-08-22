@@ -53,6 +53,19 @@ library(janitor)
 # ranef(vv)
 # summary(vv)
 
+
+#library(dismo)
+
+# this <- system('hostname', TRUE)
+# if (this == "DESKTOP-J9EEJ0L") {
+#   dp <- "D:/gdrive/share/cimmyt_cropcuts/yieldmeasures"
+# } else {
+#   dp <- "C:/Users/Kate/Google Drive/cimmyt_cropcuts/yieldmeasures"
+# }
+
+
+setwd("C:/Users/Kate/Dropbox/tza_wildlife_conflict")
+
 # hw <- read.csv("~/Downloads/SS_Final_NoDups.csv") #old version with errorz
 #hw <- read.csv("~/Downloads/Spatial_Household_Survey_Clean_1Jun20sp.csv") 
 #hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuild.csv")
@@ -1234,7 +1247,7 @@ legend('topleft' , c("can't see field" , "see field") , col=c("grey" , "black") 
 mc15 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
-    logit(p) <-a + av[village_index] + as[species_index] 
+    logit(p) <- a + av[village_index] + as[species_index] 
     + (b_SD + b_SDs[species_index])*settle_dist_km_std 
     + (b_C70 + b_C70s[species_index])*c70_std 
     + (b_C2070 + b_C2070s[species_index])*c2070_std 
@@ -3603,6 +3616,33 @@ write.csv( precis(mc17 , depth=3) , file="crop_global_model_long_params.csv" )
 write.csv( precis(ml16.1 , depth=2) , file="livestock_global_model_medium_params.csv" )
 write.csv( precis(ml16.1 , depth=3) , file="livestock_global_model_long_params.csv" )
 
+########pairs plots multicollineariry#######3
+
+#below fcs shows corrs
+settle_dist_km_std=rep(0,30),
+c70_std=plot_seq,
+c2070_std=rep(0,30),
+river_std=rep(0,30),
+road_std=rep(0,30),
+build_dens_std=rep(0,30),
+gse_slope30m_std=rep(0,30),
+log_livestock_head_std=rep(0,30),
+species_index=rep(i,30),
+household_size_std=rep(0,30), 
+guard_ave_day_std=rep(0,30), 
+
+panel.cor <- function(x, y, ...)
+{
+  par(usr = c(0, 1, 0, 1))
+  txt <- as.character(format(cor(x, y), digits=2))
+  text(0.5, 0.5, txt, cex = 6* abs(cor(x, y)))
+}
+pairs(iris[1:4], upper.panel=panel.cor)
+
+pairs(~ settle_dist_km_std + c70_std + c2070_std + river_std + road_std + build_dens_std + gse_slope30m_std + household_size_std + log_livestock_head_std + guard_ave_day_std, data=dl , upper.panel=panel.cor , col="orange")
+
+pairs(~ settle_dist_km_std + c70_std + c2070_std + river_std + road_std + build_dens_std + crop_std + household_size_std + farm_size_std + months_planted_std + see_field, data=dc , upper.panel=panel.cor , col="slateblue")
+
 ######################landscape only plots########################3
 ##########3livestock conflict landscape model preds###############
 
@@ -3972,304 +4012,3 @@ for (i in 1:2){
   dev.off()
 }
 
-
-#############################cropsn i think this is old and needs deleted
-colpal=c("blue" , "grey")
-
-#plot distance to settlement
-plot_seq <- seq(from=min(dc$settle_dist_km_std) , to=max(dc$settle_dist_km_std) , length=30)
-av_z <- matrix(0,1000,length(unique(dc$village_index))) #need to add zeros in VE to plot main effect
-
-#plot distance to settlement
-plot_seq <- seq(from=min(dc$settle_dist_km_std) , to=max(dc$settle_dist_km_std) , length=30)
-av_z <- matrix(0,1000,length(unique(dc$village_index))) #need to add zeros in VE to plot main effect
-
-
-ylabels=c("probability baboon crop conflict" , "probability elephant crop conflict")
-colpal=c("slateblue" , "darkgrey")
-
-for (i in 1:2){
-  
-  dpred <- list(
-    village_index=rep(1,30),
-    settle_dist_km_std=plot_seq,
-    c70_std = rep(0,30),
-    c2070_std = rep(0,30),
-    river_std= rep(0,30),
-    road_std= rep(0,30),
-    build_dens_std= rep(0,30),
-    crop_std= rep(0,30),
-    household_size_std=rep(0,30),
-    farm_size_std=rep(0,30),
-    months_planted_std=rep(0,30),
-    see_field=rep(mean(dc$see_field),30),
-    species_index=rep(i,30)
-  )
-  
-  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
-  par( mar=c(4,4,1,1)+.1 )
-  
-  if(i==1){
-    pdf(file = "settle_dist_crop_global_conflict_bab.pdf",   width = 6, height = 6)
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n',  cex.lab=1.3)}
-  if(i==2){
-    pdf(file = "settle_dist_crop_global_conflict_ele.pdf",   width = 6, height = 6)
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n' ,  cex.lab=1.3) }
-  pred_mean <- apply(link2 , 2 , mean)
-  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
-  for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-  }
-  axis( 1 , at= ( c(0:12) - mean(dc$settle_dist_km))/sd(dc$settle_dist_km) , labels=c(0:12))
-  
-  dev.off()
-}
-
-
-##cov70
-plot_seq <- seq(from=min(dc$c70_std) , to=max(dc$c70_std) , length=30)
-
-for (i in 1:2){
-  
-  dpred <- list(
-    village_index=rep(1,30),
-    settle_dist_km_std=rep(0,30),
-    c70_std = plot_seq,
-    c2070_std = rep(0,30),
-    river_std= rep(0,30),
-    road_std= rep(0,30),
-    build_dens_std= rep(0,30),
-    crop_std= rep(0,30),
-    household_size_std=rep(0,30),
-    farm_size_std=rep(0,30),
-    months_planted_std=rep(0,30),
-    see_field=rep(mean(dc$see_field),30),
-    species_index=rep(i,30)
-  )
-  
-  link2 <- link(mc15, data=dpred , replace=list(village_index=av_z) )
-  
-  if(i==1){
-    pdf(file = "c70_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$c70_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" , xaxt='n' , cex.lab=1.3)}
-  if(i==2){
-    pdf(file = "c70_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
-  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
-  for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-  }
-  axis( 1 , at= ( seq(from=0 , to=0.25 , by=0.05) - mean(dc$c70))/sd(dc$c70) , labels= seq(from=0 , to=0.25 , by=0.05) )
-  dev.off()
-}
-
-##cov2070
-plot_seq <- seq(from=min(dc$c2070_std) , to=max(dc$c2070_std) , length=30)
-
-for (i in 1:2){
-  
-  dpred <- list(
-    village_index=rep(1,30),
-    settle_dist_km_std=rep(0,30),
-    c70_std = rep(0,30),
-    c2070_std = plot_seq ,
-    river_std= rep(0,30),
-    road_std= rep(0,30),
-    build_dens_std= rep(0,30),
-    crop_std= rep(0,30),
-    household_size_std=rep(0,30),
-    farm_size_std=rep(0,30),
-    months_planted_std=rep(0,30),
-    see_field=rep(mean(dc$see_field),30),
-    species_index=rep(i,30)
-  )
-  
-  link2 <- link(mc15, data=dpred , replace=list(village_index=av_z) )
-  if(i==1){
-    pdf(file = "c2070_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$c2070_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n' , cex.lab=1.3)}
-  if(i==2){
-    pdf(file = "c2070_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
-  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
-  for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-  }
-  axis( 1 , at= ( seq(from=0 , to=0.7 , by=0.1) - mean(dc$c2070))/sd(dc$c2070) , labels= seq(from=0 , to=0.70 , by=0.1) )
-  dev.off()
-}
-
-###rivers
-
-plot_seq <- seq(from=min(dc$river_std) , to=max(dc$river_std) , length=30)
-
-for (i in 1:2){
-  
-  dpred <- list(
-    village_index=rep(1,30),
-    settle_dist_km_std=rep(0,30),
-    c70_std = rep(0,30),
-    c2070_std = rep(0,30) ,
-    river_std= plot_seq,
-    road_std= rep(0,30),
-    build_dens_std= rep(0,30),
-    crop_std= rep(0,30),
-    household_size_std=rep(0,30),
-    farm_size_std=rep(0,30),
-    months_planted_std=rep(0,30),
-    see_field=rep(mean(dc$see_field),30),
-    species_index=rep(i,30)
-  )
-  
-  link2 <- link(mc15, data=dpred , replace=list(village_index=av_z) )
-  if(i==1){
-    pdf(file = "river_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$river_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density" ,  xaxt='n' , cex.lab=1.3)}
-  if(i==2){
-    pdf(file = "river_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$river_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
-  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
-  for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-  }
-  axis( 1 , at= ( seq(from=0 , to=0.06 , by=0.01) - mean(dc$river))/sd(dc$river) , labels= seq(from=0 , to=0.06 , by=0.01) )
-  dev.off()
-}
-range(dc$river)
-
-##roads
-plot_seq <- seq(from=min(dc$road_std) , to=max(dc$road_std) , length=30)
-
-for (i in 1:2){
-  
-  dpred <- list(
-    village_index=rep(1,30),
-    settle_dist_km_std=rep(0,30),
-    c70_std = rep(0,30),
-    c2070_std = rep(0,30) ,
-    river_std= rep(0,30) ,
-    road_std= plot_seq,
-    build_dens_std= rep(0,30),
-    crop_std= rep(0,30),
-    household_size_std=rep(0,30),
-    farm_size_std=rep(0,30),
-    months_planted_std=rep(0,30),
-    see_field=rep(mean(dc$see_field),30),
-    species_index=rep(i,30)
-  )
-  
-  link2 <- link(mc15, data=dpred , replace=list(village_index=av_z) )
-  
-  if(i==1){
-    pdf(file = "road_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$road_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="road density"  ,xaxt='n' , cex.lab=1.3)}
-  if(i==2){
-    pdf(file = "road_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$road_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="road density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
-  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
-  for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-  }
-  axis( 1 , at= ( seq(from=0 , to=0.04 , by=0.005) - mean(dc$road))/sd(dc$road) , labels= seq(from=0 , to=0.04 , by=0.005) )
-  dev.off()
-}
-range(dc$road)
-
-##building density
-
-plot_seq <- seq(from=min(dc$build_dens_std) , to=max(dc$build_dens_std) , length=30)
-
-
-for (i in 1:2){
-  
-  dpred <- list(
-    village_index=rep(1,30),
-    settle_dist_km_std=rep(0,30),
-    c70_std = rep(0,30) ,
-    c2070_std = rep(0,30) ,
-    river_std= rep(0,30) ,
-    road_std= rep(0,30),
-    build_dens_std= plot_seq ,
-    crop_std= rep(0,30),
-    household_size_std=rep(0,30),
-    farm_size_std=rep(0,30),
-    months_planted_std=rep(0,30),
-    see_field=rep(mean(dc$see_field),30) ,
-    species_index=rep(i,30)
-  )
-  
-  link2 <- link(mc15, data=dpred , replace=list(village_index=av_z) )
-  
-  if(i==1){
-    pdf(file = "build_dens_crop_global_conflict_bab.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$build_dens_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density" ,  xaxt='n' , cex.lab=1.3)}
-  if(i==2){
-    pdf(file = "build_dens_crop_global_conflict_ele.pdf",   width = 6, height = 6) 
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$build_dens_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
-  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
-  for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-  }
-  axis( 1 , at= ( seq(from=0 , to=250 , by=25) - mean(dc$build_dens))/sd(dc$build_dens) , labels= seq(from=0 , to=250 , by=25) )
-  dev.off()
-}
-##crop
-
-plot_seq <- seq(from=min(dc$crop_std) , to=max(dc$crop_std) , length=30)
-
-for (i in 1:2){
-  
-  dpred <- list(
-    village_index=rep(1,30),
-    settle_dist_km_std=rep(0,30),
-    c70_std = rep(0,30),
-    c2070_std = rep(0,30),
-    river_std= rep(0,30),
-    road_std= rep(0,30),
-    build_dens_std= rep(0,30),
-    crop_std= plot_seq,
-    household_size_std=rep(0,30),
-    farm_size_std=rep(0,30),
-    months_planted_std=rep(0,30),
-    see_field=rep(mean(dc$see_field),30),
-    species_index=rep(i,30)
-  )
-  
-  link2 <- link(mc15, data=dpred , replace=list(village_index=av_z) )
-  
-  if(i==1){
-    pdf(file = "crop_dens_crop_global_conflict_bab.pdf",   width = 6, height = 6)
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$crop_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density" ,  xaxt='n' , cex.lab=1.3)}
-  if(i==2){
-    pdf(file = "crop_dens_crop_global_conflict_ele.pdf",   width = 6, height = 6)
-    par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$crop_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density" ,  xaxt='n' , cex.lab=1.3)}
-  pred_mean <- apply(link2 , 2 , mean)
-  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
-  for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-  }
-  axis( 1 , at= ( seq(from=0 , to=1 , by=0.1) - mean(dc$crop))/sd(dc$crop) , labels= seq(from=0 , to=1 , by=0.1) )
-  dev.off()
-}
-
-range(dc$crop)
-  
