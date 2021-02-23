@@ -1,9 +1,9 @@
-library('rethinking')
+
 library('rstan')
 require(rethinking)
 require(lubridate)
 require(RColorBrewer)
-library(janitor)
+require(janitor)
 
 
 #####to covert to map to stan
@@ -69,8 +69,8 @@ setwd(dp) ### set directory
 # hw <- read.csv("~/Downloads/SS_Final_NoDups.csv") #old version with errorz
 #hw <- read.csv("~/Downloads/Spatial_Household_Survey_Clean_1Jun20sp.csv") 
 #hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuild.csv")
-hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
-hw <-  read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv") #brendans file
+#hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
+#hw <-  read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
 
 hw <- read.csv("C:/Users/Kate/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
 
@@ -122,7 +122,7 @@ hw$num_crop_prot_strats <- hw$crop_prot_guard + hw$crop_prot_chase + hw$crop_pro
 hw$household_size <- as.integer(hw$household_size)
 
 
-d <- clean_names(hw)
+d <- janitor::clean_names(hw)
 
 d$med_lar_lv_prot
 d$months_planted
@@ -1509,7 +1509,59 @@ mc17 <- map2stan(
   ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE , control=list(adapt_delta=0.99))
 
 
-##############global plots below###################
+#plot distance to settlement
+plot_seq <- seq(from=min(dc$settle_dist_km_std) , to=max(dc$settle_dist_km_std) , length=30)
+av_z <- matrix(0,1000,length(unique(dc$village_index))) #need to add zeros in VE to plot main effect
+
+
+ylabels=c("probability baboon crop conflict" , "probability elephant crop conflict", "probability vervet conflict")
+colpal=c("slateblue" , "darkgrey", "seagreen")
+
+for (i in 1:3){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    settle_dist_km_std=plot_seq,
+    c70_std = rep(0,30),
+    c2070_std = rep(0,30),
+    river_std= rep(0,30),
+    road_std= rep(0,30),
+    build_dens_std= rep(0,30),
+    crop_std= rep(0,30),
+    household_size_std=rep(0,30),
+    farm_size_std=rep(0,30),
+    months_planted_std=rep(0,30),
+    see_field=rep(mean(dc$see_field),30),
+    species_index=rep(i,30)
+  )
+  
+  link2 <- ensemble(mc17,mc15, data=dpred , replace=list(village_index=av_z) )
+    par( mar=c(4,4,1,1)+.1 )
+  
+  if(i==1){
+    pdf(file = "plots/settle_dist_crop_global_conflict_bab2.pdf",   width = 6, height = 6)
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$baboon_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n',  cex.lab=1.3)}
+    
+  if(i==2){
+    pdf(file = "plots/settle_dist_crop_global_conflict_ele2.pdf",   width = 6, height = 6)
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$elephant_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n' ,  cex.lab=1.3) }
+    
+    if(i==3){
+      pdf(file = "plots/settle_dist_crop_global_conflict_verv2.pdf",   width = 6, height = 6)
+      par( mar=c(4,4,1,1)+.1 )
+      plot(dc$vervet_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n' ,  cex.lab=1.3) }
+    
+  pred_mean <- apply(link2$link , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  axis( 1 , at= ( c(0:12) - mean(dc$settle_dist_km))/sd(dc$settle_dist_km) , labels=c(0:12))
+  
+  dev.off()
+}
 
 ##cov70
 plot_seq <- seq(from=min(dc$c70_std) , to=max(dc$c70_std) , length=30)
@@ -1551,7 +1603,7 @@ for (i in 1:3){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(fromv= min(dc$c70) , to= max(dc$c70) , by=0.05) - mean(dc$c70))/sd(dc$c70) , labels= seq(from=min(dc$c70) , to= max(dc$c70) , by=0.05) )
+  axis( 1 , at= ( seq(from=0 , to=0.25 , by=0.05) - mean(dc$c70))/sd(dc$c70) , labels= seq(from=0 , to=0.25 , by=0.05) )
   dev.off()
 }
 
@@ -1594,7 +1646,7 @@ for (i in 1:3){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-axis( 1 , at= ( seq(from=min(dc$c2070) , to=max(dc$c2070) , by=0.1) - mean(dc$c2070))/sd(dc$c2070) , labels= seq( from=min(dc$c2070) , to=max(dc$c2070) , by=0.1) )
+axis( 1 , at= ( seq(from=0 , to=0.7 , by=0.1) - mean(dc$c2070))/sd(dc$c2070) , labels= seq(from=0 , to=0.70 , by=0.1) )
    dev.off()
 }
 
@@ -1638,7 +1690,7 @@ for (i in 1:3){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=min(dc$river) , to=max(dc$river) , by=0.01) - mean(dc$river))/sd(dc$river) , labels= seq(from=min(dc$river) , to=max(dc$river) , by=0.01) )
+  axis( 1 , at= ( seq(from=0 , to=0.06 , by=0.01) - mean(dc$river))/sd(dc$river) , labels= seq(from=0 , to=0.06 , by=0.01) )
   dev.off()
 }
 range(dc$river)
@@ -1683,7 +1735,7 @@ for (i in 1:3){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=min(dc$road) , to=max(dc$road) , by=0.005) - mean(dc$road))/sd(dc$road) , labels= seq(from=min(dc$road) , to=max(dc$road) , by=0.005) )
+  axis( 1 , at= ( seq(from=0 , to=0.04 , by=0.005) - mean(dc$road))/sd(dc$road) , labels= seq(from=0 , to=0.04 , by=0.005) )
   dev.off()
 }
 range(dc$road)
@@ -1730,7 +1782,7 @@ for (i in 1:3){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2$link[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-   axis( 1 , at= ( seq(from=min(dc$build_dens) , to=max(dc$build_dens) , by=25) - mean(dc$build_dens))/sd(dc$build_dens) , labels= seq(from=min(dc$build_dens) , to=max(dc$build_dens) , by=25) )
+   axis( 1 , at= ( seq(from=0 , to=250 , by=25) - mean(dc$build_dens))/sd(dc$build_dens) , labels= seq(from=0 , to=250 , by=25) )
   dev.off()
 }
 ##crop
