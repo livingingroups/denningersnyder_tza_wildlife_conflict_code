@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+.pdf
+#below ignores all files in plots folder
+**/plots
