@@ -3416,6 +3416,9 @@ for (i in 1:2){
 
 WAICstockmod <- compare(ml1,ml2,ml3,ml4,ml5,ml6,ml7,ml8,ml9,ml10,ml11,ml13,ml14,ml14.1,ml15,ml16.1)
 write.csv(WAICstockmod , "WAICstockmod.csv")
+
+
+
 ##########################################
 #############raster preds################
 #########################################
@@ -3518,6 +3521,57 @@ ras_ele$pred_ele_crop_conflict <- logistic( mean(p$a + p$as[,2]) +
 dens(ras_ele$pred_ele_crop_conflict)
 ras_ele_sub <- cbind( ras_ele[1:3] , ras_ele$pred_ele_crop_conflict)
 write.csv(ras_ele_sub , file="ras_elephant_crop_preds.csv")
+
+
+#####Vervets baby#####
+
+ras_ver<-  read.csv("~/Dropbox/tza_wildlife_conflict/vervetRasterstacktopoints_survext.csv")
+ras_ver<-  read.csv("vervetRasterstacktopoints_survext.csv")
+
+ras_ver$settle_dist_km <- ras_ver$settle_dist/1000
+ras_ver$crop_std <- (ras_ver$crop-mean(dc$crop) )/sd(dc$crop) 
+ras_ver$c70_std <- (ras_ver$c70 -mean(dc$c70 ) )/ sd(dc$c70 ) 
+ras_ver$c2070_std <- (ras_ver$c2070 -mean(dc$c2070 ) )/ sd(dc$c2070 ) 
+ras_ver$river_std <- (ras_ver$river -mean(dc$river ) )/ sd(dc$river) 
+ras_ver$road_std <- (ras_ver$road -mean(dc$road ) )/ sd(dc$road) 
+ras_ver$build_dens_std <- (ras_ver$build_dens-mean(dc$build_dens ) )/ sd(dc$build_dens) 
+ras_ver$settle_dist_km_std <- (ras_ver$settle_dist_km-mean(dc$settle_dist_km ) )/ sd(dc$settle_dist_km) 
+ras_ver$species_index <- 2
+
+p <- extract.samples(mc17)
+
+dpred <- list(
+  village_index=rep(1,nrow(ras_ver)),
+  settle_dist_km_std=ras_ver$settle_dist_km_std,
+  c70_std = ras_ver$c70_std,
+  c2070_std = ras_ver$c2070_std,
+  river_std= ras_ver$river_std,
+  road_std= ras_ver$road_std,
+  build_dens_std=ras_ver$build_dens_std,
+  crop_std= ras_ver$crop_std,
+  household_size_std=rep(0,nrow(ras_ver)),
+  farm_size_std=rep(0,nrow(ras_ver)),
+  months_planted_std=rep(0,nrow(ras_ver)),
+  see_field=rep(mean(dc$see_field),nrow(ras_ver)),
+  species_index=ras_ver$species_index
+)
+
+##note this is with other variables at mean, excluded b/c standardized so mean in 0, conputationally kwiker
+ras_ver$pred_ver_crop_conflict <-0
+ras_ver$pred_ver_crop_conflict <- logistic( mean(p$a + p$as[,3]) + 
+                                              mean(p$b_SD + p$b_SDs[,3])*dpred$settle_dist_km_std  + 
+                                              mean(p$b_C70 + p$b_C70s[,3])*dpred$c70_std +
+                                              mean(p$b_C2070 + p$b_C2070s[,3])*dpred$c2070_std +
+                                              mean(p$b_BD + p$b_BDs[,3])*dpred$build_dens_std +
+                                              mean(p$b_CR + p$b_CRs[,3])*dpred$crop_std  + 
+                                              mean(p$b_SEE + p$b_SEEs[,3])*dpred$see_field +
+                                              mean(p$b_RD + p$b_RDs[,3])*dpred$crop_std  + 
+                                              mean(p$b_RIV + p$b_RIVs[,3])*dpred$crop_std 
+                                            
+)
+dens(ras_ver$pred_ele_crop_conflict)
+ras_ver_sub <- cbind( ras_ver[1:3] , ras_ver$pred_ele_crop_conflict)
+write.csv(ras_ver_sub , file="ras_vervet_crop_preds.csv")
 
 
 ###export relevant map2stan objects
