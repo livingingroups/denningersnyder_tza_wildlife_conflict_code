@@ -73,6 +73,7 @@ setwd(dp) ### set directory
 #hw <-  read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
 
 hw <- read.csv("C:/Users/Kate/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
+hw <- read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
 
 
 hw[,"cattle"] <- ifelse(hw[,"cattle"] < 0 , 0 , hw[,"cattle"])
@@ -3469,7 +3470,7 @@ ras_bab$pred_bab_crop_conflict <- logistic( mean(p$a + p$as[,1]) +
 
 dens(ras_bab$pred_bab_crop_conflict)
 ras_bab_sub <- cbind( ras_bab[1:3] , ras_bab$pred_bab_crop_conflict)
-write.csv(ras_bab_sub , file="ras_baboon_crop_preds.csv")
+write.csv(ras_bab_sub , file="ras_baboon_crop_predsv.csv")
 
 
 ###elephants###################
@@ -3520,7 +3521,7 @@ ras_ele$pred_ele_crop_conflict <- logistic( mean(p$a + p$as[,2]) +
 )
 dens(ras_ele$pred_ele_crop_conflict)
 ras_ele_sub <- cbind( ras_ele[1:3] , ras_ele$pred_ele_crop_conflict)
-write.csv(ras_ele_sub , file="ras_elephant_crop_preds.csv")
+write.csv(ras_ele_sub , file="ras_elephant_crop_predsv.csv")
 
 
 #####Vervets baby#####
@@ -3536,7 +3537,7 @@ ras_ver$river_std <- (ras_ver$river -mean(dc$river ) )/ sd(dc$river)
 ras_ver$road_std <- (ras_ver$road -mean(dc$road ) )/ sd(dc$road) 
 ras_ver$build_dens_std <- (ras_ver$build_dens-mean(dc$build_dens ) )/ sd(dc$build_dens) 
 ras_ver$settle_dist_km_std <- (ras_ver$settle_dist_km-mean(dc$settle_dist_km ) )/ sd(dc$settle_dist_km) 
-ras_ver$species_index <- 2
+ras_ver$species_index <- 3
 
 p <- extract.samples(mc17)
 
@@ -3569,13 +3570,14 @@ ras_ver$pred_ver_crop_conflict <- logistic( mean(p$a + p$as[,3]) +
                                               mean(p$b_RIV + p$b_RIVs[,3])*dpred$crop_std 
                                             
 )
-dens(ras_ver$pred_ele_crop_conflict)
-ras_ver_sub <- cbind( ras_ver[1:3] , ras_ver$pred_ele_crop_conflict)
+dens(ras_ver$pred_ver_crop_conflict)
+ras_ver_sub <- cbind( ras_ver[1:3] , ras_ver$pred_ver_crop_conflict)
 write.csv(ras_ver_sub , file="ras_vervet_crop_preds.csv")
 
 
 ###export relevant map2stan objects
-save(dc,WAICcropmods, mc17,mc15, file="relevant_crop_plot_models.rdata")
+save(dc,#WAICcropmods, 
+     mc17,mc15, file="relevant_crop_plot_modelsnoWAIC.rdata")
 save(dl,WAICstockmod,ml16.1,ml14,file="relevant_livestock_plot_models.rdata")
 
 ######to catch a predator############
@@ -3739,8 +3741,8 @@ pdf(file = "crop_conflict_species_parameter_dotplots.pdf",   width = 7, height =
 plot(precis(p_crop_global))
 dev.off()
 
-write.csv( precis(mc17 , depth=2) , file="crop_global_model_medium_params.csv" )
-write.csv( precis(mc17 , depth=3) , file="crop_global_model_long_params.csv" )
+write.csv( precis(mc17 , depth=2) , file="crop_global_model_medium_paramsv.csv" )
+write.csv( precis(mc17 , depth=3) , file="crop_global_model_long_paramsv.csv" )
 write.csv( precis(ml16.1 , depth=2) , file="livestock_global_model_medium_params.csv" )
 write.csv( precis(ml16.1 , depth=3) , file="livestock_global_model_long_params.csv" )
 
