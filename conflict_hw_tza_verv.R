@@ -1,21 +1,9 @@
-
 library('rstan')
 require(rethinking)
 require(lubridate)
 require(RColorBrewer)
 require(janitor)
 
-
-#####to covert to map to stan
-#1 change ulam to map to stan
-#2 add a to likelihood loop.
-#3 center priors on zero and not a or b_XX
-#4 change multivariate normal priors to map to stan specs
-#5 change rho to map to stan version, i think dlkjcorr(3) is fine, find replace this
-#6 make sure they all run same # iterations
-# look at mc2 and commeted out version for a guide
-# look at mc17nc for the fancy final version of what we want
-# 
 # #########LIVESTOCK lions and hyenas
 # settle_dist_km_std   LS   b_SD 
 # household_size_std   HH   b_HH
@@ -45,16 +33,6 @@ require(janitor)
 # crop_prot               HH 
 
 
-
-# library(lme4)
-# vv <- glmer(conflict ~ (1|ethnicity) , data=hw , family="binomial")
-# vv <- glmer(conflict ~ born + (1|village) + (1+born|species), data=hw , family="binomial")
-# vv <- glmer(conflict ~ mon + (1|village) + (1+born|species), data=hw , family="binomial")
-# ranef(vv)
-# summary(vv)
-
-
-
 this <- system('hostname', TRUE)
 if (this == "DESKTOP-J9EEJ0L") {
   dp <- "C:/Users/Kate/Dropbox/R_data/Dis_Prop/LUC/hwc_risk/data"
@@ -75,20 +53,17 @@ setwd(dp) ### set directory
 hw <- read.csv("C:/Users/Kate/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
 hw <- read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
 
+###eleganterish way to replace NA with zero so
+names(hw[42:49]) #check names. assume are livestock types in order
 
-hw[,"cattle"] <- ifelse(hw[,"cattle"] < 0 , 0 , hw[,"cattle"])
-hw[,"sheep"] <- ifelse(hw[,"sheep"] < 0 , 0 , hw[,"sheep"])
-hw[,"goat"] <- ifelse(hw[,"goat"] < 0 , 0 , hw[,"goat"])
-hw[,"donkey"] <- ifelse(hw[,"donkey"] < 0 , 0 , hw[,"donkey"])
-hw[,"dog"] <- ifelse(hw[,"dog"] < 0 , 0 , hw[,"dog"])
-hw[,"chicken"] <- ifelse(hw[,"chicken"] < 0 , 0 , hw[,"chicken"])
-hw[,"duck"] <- ifelse(hw[,"duck"] < 0 , 0 , hw[,"duck"])
-hw[,"other_livestock"] <- ifelse(hw[,"other_livestock"] < 0 , 0 , hw[,"other_livestock"])
+for (species in names(hw[42:49]) ){
+  hw[which( is.na(hw[,species]) ) , species] <- 0 #replaces NA with zeros
+  hw[,species] <- ifelse(hw[,species] < 0 , 0 , hw[,species]) #makes negative values zero
+}
 
 hw$guard_ave_day <- ifelse(hw$guard_ave_day < 0 , 0 , hw$guard_ave_day)
-hw$livestock_head <- + hw[,"cattle"] +hw[,"sheep"] + hw[,"goat"] + hw[,"donkey"]
+hw$livestock_head <- hw[,"cattle"] + hw[,"sheep"] + hw[,"goat"] + hw[,"donkey"]
 hw$livestock_head_all <- hw[,"cattle"] +hw[,"sheep"] + hw[,"goat"] + hw[,"donkey"] +  hw[,"dog"] +  hw[,"chicken"] +  hw[,"duck"] +hw[,"other_livestock"] #i don't think this is correct anymore
-
 
 hw[hw == "-2147483648"] <- "NA"
 
@@ -2938,7 +2913,7 @@ ml16.1 <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
+  ), data=dl , chains=6 , cores=6 , iter=1000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
 
 #########SDistance
 
@@ -3355,7 +3330,7 @@ for (i in 1:2){
   dev.off()
 }
 
-###interaction between num guards and livestock size
+###interaction between num guards and livestock size, if we do this lets automate brendad gave up last time
 colpal1=brewer.pal(7,"Reds")
 colpal2=brewer.pal(7,"Oranges")
 colpal1=colpal1[3:7]
