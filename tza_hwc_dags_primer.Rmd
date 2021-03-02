@@ -1,0 +1,254 @@
+---
+title: "DAGs and Causal Inference for Wuman-Wildlife Conflict in TZA"
+output: pdf_document
+bibliography: AllReference.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("dagitty")
+```
+
+## Introduction to Causal Inference
+
+this is Brendan's crash course primer on Causal Inference and DAG's as it related to multiple regression and the TZA Wildlife conflict paper. We'll do a primer and then draw some DAGS.
+
+## Background
+A primary aim of the scientific enterprise is to infer causal effects of predictors on outcome variables of inference, so we can understand how systems function. This also can help folks working in applied contexts make informed interventions, such as mitigating human-wildlife conflict. Well-designed experiments are one typical approach to understand causality, but in many cases, like the study presented in this paper, experiments would be infeasible or unethical. Many common approaches in statistical inference, such as multivariate regression, do not make any claims about causality, and statistical information flows directly between outcome variable and predictors. Researchers are often concerned about the effect of predictor, X, on an outcome variable, Y.  However, X may be correlated with another covariate(s) of interest, Z, which can confound the relationship between X and Y. To infer the relationship between X and Y, researchers will often add covariates like Z (and often times many others) to control for potential covariates. A common term in ecology papers is to ''control for seasonality'' or ''control for environmental effects.''
+
+Confounding factors are a real, and valid concern, but whether or not to include a variable in a multivariate regression depends on the causal relationships between measureable variables of interest, and any potential unobserved variables. In some cases, including  covariate Z can reduce the precision of an estimate of the effect of X on Y or render it entirely unreliable if Z is a collider (where X and Y both cause Z).
+
+## What's a DAG
+
+DAGs and CI are a topic seperate from, but related to statistical inference. When it comes to regression, these models do not imply causality. Information flows freely between variables of interst. However, if we aim to make inference about causal relationships, we need to close any backdoor paths through which information may flow in our DAG to assess the true effect of X on Y. 
+
+
+
+## Drawing a DAG
+
+To draw a DAG, we first consider all of the variable of interest in the system. We typically want to known the effect of a treatment/predictor/exposure on an outcome variable. If we think X, our predictor, directly causes Y, we draw an arrow from X to Y like so:
+
+```{r x to y dag}
+playdag <- 
+  plot(dagitty('dag {X -> Y}'))
+```
+
+This arrow implies a direct causal relationship between X and Y. What that means is the natural process determining Y is *directly influenced* by the status of X. Altering X via external intervention would also alter Y. However, an arrow X → Y only represents that part of the causal effect which is not mediated by any of the other variables in the diagram. If you are sure X does not direcly mediate Y, you can exclude an arrow. We must also ensure that X preceeds Y, as causes must come before effects. In instances where this is not the case, and there are bidirectional arrows between X and Y we violate this assumption and need an experiment or time series of treatments on outcomes. CI folks also think the omission of an arrow is a stronger claim that the inclusion of an arrow.
+
+### Pipes as confounds
+Variables can also indirectly influence inference. Lets posit the following DAG:
+
+```{r x to y pipe dag}
+playdag <- 
+  plot(dagitty('dag {
+  X->Y
+  X->Z
+  Z->Y
+                    }'))
+```
+In this case there is a direct path of X -> Y. However, there is also an indirect, aka "backdoor" path of X -> Z -> Y. This indirect path is called a "pipe". If we wish to make inference about X causing Y, we must condition on Z in our regression to close the backdoor path. This means include it as a predictor. In `lm` syntax this means `Y ~ X + Z`.
+
+### Forks as confounds
+
+There exists another confound, commonly encountered called a fork. This is the classic confound, researchers think the mean about when they say control for something. It means that some variable Z directly causes both the predictor X and the outcome Y. Z might be some varaible like, occuring in the the same location. Draw the DAG, Clarice.
+```{r x to y fork dag}
+playdag <- 
+  plot(dagitty('dag {
+  X->Y
+  X<-Z
+  Z->Y
+                    }'))
+```
+One concern we did not address, is unobserved variable. For example, if we did not observe or measure Z, and the above DAG is true that means we cannot make a reliable inference about the direct causal effect of X on Y. Thus it is imoportant to include important causal data you did not collect in your DAG.
+
+### Colliders
+Lastly we have colliders. This means X and Y both directly cause Z. DAG me.
+```{r x to y collider dag}
+playdag <- 
+  plot(dagitty('dag {
+  X->Y
+  X->Z
+  Z->Y
+                    }'))
+```
+On any causal pathway, anything where 2 arrows enter is a collider. Unlike pipes and forks, we do not ever want to condition on colliders, as this opens the back door path, and allows information to flow, thus altering inference.
+### more
+There is a bit more we could cover, like descendents, but we will postpone that for now. Our goal for our question is to DAG out all related variables of interest in our system. If we want to see how X causes Y, or livestock head causes conflict, we then trace the direct and backdoor paths from X to Y, and condition on the necessary variables to close backdoor paths. Sometimes ew can, and in some causal diagrams we can't. N
+
+Now lets draw DAGs for our paper.
+
+## DAGS for livestock
+
+First we will do one where we do not have the guards double arrow.
+
+```{r livestock dag no double}
+####here is relevant code to DAGs and grumeti
+##imply all relationships
+ls_conf_no_guard <- 
+  dagitty('dag {
+  c2070 -> conflict
+  bd -> conflict
+  bd <-> road
+  c70 -> conflict
+  hh_size -> lsh
+  hh_size -> guards
+  lsh -> conflict
+  lsh -> guards
+  river -> c70
+  river -> conflict
+  sd -> bd
+  sd -> conflict
+  guards -> conflict
+  slope -> bd
+  slope -> conflict
+  slope -> road
+}'
+          )
+```
+
+Now lets plot the DAG.
+
+```{r dag plot, echo=FALSE}
+plot(ls_conf_no_guard)
+```
+###this will tell us what are the minimal things we need to condition on to make inferences about the relationship between items
+```{r dag code clusterfuck, echo=TRUE}
+
+adjustmentSets( ls_conf_no_guard , exposure="c2070" , outcome="conflict" , type="canonical") #independent of others should be invariant
+adjustmentSets( ls_conf_no_guard , exposure="c2070" , outcome="conflict" , type="minimal") #independent of others should be invariant
+
+adjustmentSets( ls_conf_no_guard , exposure="c70" , outcome="conflict" ) #account for river
+adjustmentSets( ls_conf_no_guard , exposure="c70" , outcome="conflict", type="canonical" ) #account for river
+
+adjustmentSets( ls_conf_no_guard , exposure="lsh" , outcome="conflict" ) #account for hh_size
+adjustmentSets( ls_conf_no_guard , exposure="lsh" , outcome="conflict" , type="canonical") #account for hh_size
+
+adjustmentSets( ls_conf_no_guard , exposure="river" , outcome="conflict" )
+adjustmentSets( ls_conf_no_guard , exposure="river" , outcome="conflict" , type="canonical")
+
+adjustmentSets( ls_conf_no_guard , exposure="sd" , outcome="conflict" )
+adjustmentSets( ls_conf_no_guard , exposure="sd" , outcome="conflict" , type="canonical")
+
+adjustmentSets( ls_conf_no_guard , exposure="slope" , outcome="conflict" )
+adjustmentSets( ls_conf_no_guard , exposure="slope" , outcome="conflict", type="canonical" )
+
+adjustmentSets( ls_conf_no_guard , exposure="guards" , outcome="conflict" )
+adjustmentSets( ls_conf_no_guard , exposure="guards" , outcome="conflict", type="canonical" )
+
+##identifing colliders
+isCollider(ls_conf_no_guard , "hh_size" , "guards","conflict") #shows not a collider on path from hh_size to conflict thru guards
+isCollider(ls_conf_no_guard , "hh_size" , "guards","lsh") #shows guards is collider on path from hh_size to LSH
+
+ls_conf_yes_guard <- 
+  dagitty('dag {
+  c2070 -> conflict
+  bd -> conflict
+  bd <-> road
+  c70 -> conflict
+  hh_size -> lsh
+  hh_size -> guards
+  lsh -> conflict
+  lsh -> guards
+  river -> c70
+  river -> conflict
+  sd -> bd
+  sd -> conflict
+  guards <-> conflict
+  slope -> bd
+  slope -> conflict
+  slope -> road
+}')
+
+plot(ls_conf_yes_guard)
+###this will tell us what are the minimal things we need to condition on to make inferences about the relationship between items
+adjustmentSets( ls_conf_yes_guard , exposure="c2070" , outcome="conflict" , type="canonical") #independent of others should be invariant
+adjustmentSets( ls_conf_yes_guard , exposure="c2070" , outcome="conflict" , type="minimal") #independent of others should be invariant
+
+adjustmentSets( ls_conf_yes_guard , exposure="c70" , outcome="conflict" ) #account for river
+adjustmentSets( ls_conf_yes_guard , exposure="c70" , outcome="conflict", type="canonical" ) #account for river
+
+adjustmentSets( ls_conf_yes_guard , exposure="lsh" , outcome="conflict" ) #account for hh_size
+adjustmentSets( ls_conf_yes_guard , exposure="lsh" , outcome="conflict" , type="canonical") #account for hh_size
+
+adjustmentSets( ls_conf_yes_guard , exposure="river" , outcome="conflict" )
+adjustmentSets( ls_conf_yes_guard , exposure="river" , outcome="conflict" , type="canonical")
+
+adjustmentSets( ls_conf_yes_guard , exposure="sd" , outcome="conflict" )
+adjustmentSets( ls_conf_yes_guard , exposure="sd" , outcome="conflict" , type="canonical")
+
+adjustmentSets( ls_conf_yes_guard , exposure="slope" , outcome="conflict" )
+adjustmentSets( ls_conf_yes_guard , exposure="slope" , outcome="conflict", type="canonical" )
+
+adjustmentSets( ls_conf_yes_guard , exposure="guards" , outcome="conflict" )
+adjustmentSets( ls_conf_yes_guard , exposure="guards" , outcome="conflict", type="canonical" )
+
+##identifing colliders
+isCollider(ls_conf_yes_guard , "hh_size" , "guards","conflict") #shows not a collider on path from hh_size to conflict thru guards
+isCollider(ls_conf_yes_guard , "hh_size" , "guards","lsh") #shows guards is collider on path from hh_size to LSH
+
+
+###crop damage
+crop_damage_dag <- 
+  dagitty('dag {
+  c2070 -> crop_damage
+  c70 -> crop_damage
+  river -> c70
+  river -> c2070
+  river -> crop_damage
+  months_planted -> crop_damage
+  farm_size -> crop_damage
+  farm_size -> num_protect
+  num_protect -> crop_damage
+  crop_damage -> num_protect
+  hh_size -> num_protect
+  hh_size -> farm_size
+  hh_size -> crop_damage
+  see_field -> num_protect
+  see_field -> crop_damage
+  road -> bd
+  bd -> crop_damage
+  bd -> c2070
+  bd -> c70
+  sd -> bd
+  sd -> crop_damage
+  cd -> c70
+  cd -> c2070
+  cd -> crop_damage
+  }')
+
+plot(crop_damage_dag)
+
+adjustmentSets( crop_damage_dag , exposure="c2070" , outcome="crop_damage" , type="canonical") #independent of others should be invariant
+adjustmentSets( crop_damage_dag , exposure="c2070" , outcome="crop_damage" , type="minimal") #independent of others should be invariant
+
+adjustmentSets( crop_damage_dag , exposure="c70" , outcome="crop_damage" ) #account for river
+adjustmentSets( crop_damage_dag , exposure="c70" , outcome="crop_damage", type="canonical" ) #account for river
+
+adjustmentSets( crop_damage_dag , exposure="cd" , outcome="crop_damage" ) #account for hh_size
+adjustmentSets( crop_damage_dag , exposure="cd" , outcome="crop_damage" , type="canonical") #account for hh_size
+
+adjustmentSets( crop_damage_dag , exposure="river" , outcome="crop_damage" )
+adjustmentSets( crop_damage_dag , exposure="river" , outcome="crop_damage" , type="canonical")
+
+adjustmentSets( crop_damage_dag , exposure="sd" , outcome="crop_damage" )
+adjustmentSets( crop_damage_dag , exposure="sd" , outcome="crop_damage" , type="canonical")
+
+adjustmentSets( crop_damage_dag , exposure="bd" , outcome="crop_damage" )
+adjustmentSets( crop_damage_dag , exposure="bd" , outcome="crop_damage" , type="canonical")
+
+adjustmentSets( crop_damage_dag , exposure="months_planted" , outcome="crop_damage" )
+adjustmentSets( crop_damage_dag , exposure="months_planted" , outcome="crop_damage" , type="canonical")
+
+adjustmentSets( crop_damage_dag , exposure="see_field" , outcome="crop_damage" )
+adjustmentSets( crop_damage_dag , exposure="see_field" , outcome="crop_damage" , type="canonical")
+
+adjustmentSets( crop_damage_dag , exposure="num_protect" , outcome="crop_damage" )
+adjustmentSets( crop_damage_dag , exposure="num_protect" , outcome="crop_damage" , type="canonical")
+
+adjustmentSets( crop_damage_dag , exposure="hh_size" , outcome="crop_damage" )
+adjustmentSets( crop_damage_dag , exposure="hh_size" , outcome="crop_damage" , type="canonical")
+
+adjustmentSets( crop_damage_dag , exposure="farm_size" , outcome="crop_damage" )
+adjustmentSets( crop_damage_dag , exposure="farm_size" , outcome="crop_damage" , type="canonical")
+
+```
