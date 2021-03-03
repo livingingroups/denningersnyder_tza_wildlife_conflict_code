@@ -1,6 +1,6 @@
 ---
 title: "DAGs and Causal Inference for Wuman-Wildlife Conflict in TZA"
-output: pdf_document
+output: html_document
 bibliography: AllReference.bib
 ---
 
@@ -11,7 +11,7 @@ library("dagitty")
 
 ## Introduction to Causal Inference
 
-this is Brendan's crash course primer on Causal Inference and DAG's as it related to multiple regression and the TZA Wildlife conflict paper. We'll do a primer and then draw some DAGS.
+this is Brendan's crash course primer on Causal Inference (CI) and DAG's as it related to multiple regression and the TZA Wildlife conflict paper. We'll do a primer and then draw some DAGS. I advise installing the `dagitty` package.
 
 ## Background
 A primary aim of the scientific enterprise is to infer causal effects of predictors on outcome variables of inference, so we can understand how systems function. This also can help folks working in applied contexts make informed interventions, such as mitigating human-wildlife conflict. Well-designed experiments are one typical approach to understand causality, but in many cases, like the study presented in this paper, experiments would be infeasible or unethical. Many common approaches in statistical inference, such as multivariate regression, do not make any claims about causality, and statistical information flows directly between outcome variable and predictors. Researchers are often concerned about the effect of predictor, X, on an outcome variable, Y.  However, X may be correlated with another covariate(s) of interest, Z, which can confound the relationship between X and Y. To infer the relationship between X and Y, researchers will often add covariates like Z (and often times many others) to control for potential covariates. A common term in ecology papers is to ''control for seasonality'' or ''control for environmental effects.''
@@ -20,7 +20,7 @@ Confounding factors are a real, and valid concern, but whether or not to include
 
 ## What's a DAG
 
-DAGs and CI are a topic seperate from, but related to statistical inference. When it comes to regression, these models do not imply causality. Information flows freely between variables of interst. However, if we aim to make inference about causal relationships, we need to close any backdoor paths through which information may flow in our DAG to assess the true effect of X on Y. 
+DAG stands for directed acyclical graph. DAGs and CI are a topic seperate from, but related to statistical inference. When it comes to regression, these models do not imply causality. Information flows freely between variables of interst. However, if we aim to make inference about causal relationships, we need to close any backdoor paths through which information may flow in our DAG to assess the true effect of X on Y. 
 
 
 
@@ -28,7 +28,7 @@ DAGs and CI are a topic seperate from, but related to statistical inference. Whe
 
 To draw a DAG, we first consider all of the variable of interest in the system. We typically want to known the effect of a treatment/predictor/exposure on an outcome variable. If we think X, our predictor, directly causes Y, we draw an arrow from X to Y like so:
 
-```{r x to y dag}
+```{r x to y dag , fig.height = 2 , fig.width=3}
 playdag <- 
   plot(dagitty('dag {X -> Y}'))
 ```
@@ -38,7 +38,7 @@ This arrow implies a direct causal relationship between X and Y. What that means
 ### Pipes as confounds
 Variables can also indirectly influence inference. Lets posit the following DAG:
 
-```{r x to y pipe dag}
+```{r x to y pipe dag , fig.height = 2 , fig.width=3}
 playdag <- 
   plot(dagitty('dag {
   X->Y
@@ -51,7 +51,7 @@ In this case there is a direct path of X -> Y. However, there is also an indirec
 ### Forks as confounds
 
 There exists another confound, commonly encountered called a fork. This is the classic confound, researchers think the mean about when they say control for something. It means that some variable Z directly causes both the predictor X and the outcome Y. Z might be some varaible like, occuring in the the same location. Draw the DAG, Clarice.
-```{r x to y fork dag}
+```{r x to y fork dag , fig.height = 2 , fig.width=3}
 playdag <- 
   plot(dagitty('dag {
   X->Y
@@ -59,11 +59,11 @@ playdag <-
   Z->Y
                     }'))
 ```
-One concern we did not address, is unobserved variable. For example, if we did not observe or measure Z, and the above DAG is true that means we cannot make a reliable inference about the direct causal effect of X on Y. Thus it is imoportant to include important causal data you did not collect in your DAG.
+One concern we did not address, is **unobserved variables**. For example, if we did not observe or measure Z, and the above DAG is true that means we cannot make a reliable inference about the direct causal effect of X on Y. Thus it is imoportant to include important causal data you did not collect in your DAG.
 
 ### Colliders
 Lastly we have colliders. This means X and Y both directly cause Z. DAG me.
-```{r x to y collider dag}
+```{r x to y collider dag , fig.height = 2 , fig.width=3}
 playdag <- 
   plot(dagitty('dag {
   X->Y
@@ -75,11 +75,33 @@ On any causal pathway, anything where 2 arrows enter is a collider. Unlike pipes
 ### more
 There is a bit more we could cover, like descendents, but we will postpone that for now. Our goal for our question is to DAG out all related variables of interest in our system. If we want to see how X causes Y, or livestock head causes conflict, we then trace the direct and backdoor paths from X to Y, and condition on the necessary variables to close backdoor paths. Sometimes ew can, and in some causal diagrams we can't. N
 
-Now lets draw DAGs for our paper.
+Now lets draw DAGs for our paper. I think it is important we all agree on a DAG or 2 before we rerun analyses.
 
 ## DAGS for livestock
 
-First we will do one where we do not have the guards double arrow.
+First we will do one where we do not have the guards double arrow. As that shoul be simpler. You can also do this on [daggity.com](www.daggity.com) to save and work with tis in a GUI or expor LaTeX code.
+
+First we can draw causal relationships between each variable, and write down a justification.
+
+All 3 of us should work on this together and fill this out. 
+
+1. c2070 -> conflict: because predators use that as habitat
+2. bd -> conflict
+3. bd <-> road
+4. c70 -> conflict
+5. hh_size -> lsh
+6. hh_size -> guards
+7. lsh -> conflict
+8. lsh -> guards
+9. river -> c70
+10. river -> conflict
+11. sd -> bd
+12. sd -> conflict
+13. guards -> conflict
+14. slope -> bd
+15.slope -> conflict
+16. slope -> road
+
 
 ```{r livestock dag no double}
 ####here is relevant code to DAGs and grumeti
@@ -108,15 +130,27 @@ ls_conf_no_guard <-
 
 Now lets plot the DAG.
 
-```{r dag plot, echo=FALSE}
+```{r dag plot}
 plot(ls_conf_no_guard)
 ```
-###this will tell us what are the minimal things we need to condition on to make inferences about the relationship between items
-```{r dag code clusterfuck, echo=TRUE}
+
+One on the advantages of `dagitty` package ia that we can use it to identify the adjustment sets. That is the minimum things we need to adjust for to make an infrence about the relationship between X (i.e. building distance) and Y (livestock conflict).
+
+Lets look at sd. If we run the code below. it will tell us the minimal number of adjustments to make , i.e. things to include in regression, to make a valid inference about how sd affects conflict. Assuming th DAG is true. In this case it is settlement distance and slope.
+```{r adjustment sets dag sd min, echo=TRUE}
+adjustmentSets( ls_conf_no_guard , exposure="bd" , outcome="conflict" , type="minimal") 
+```
+We can also look at the maximum plausible set we can use to see what is safe to include in a large regression.
+```{r adjestment sets dag sd canonical, echo=TRUE}
+adjustmentSets( ls_conf_no_guard , exposure="bd" , outcome="conflict" , type="canonical") 
+```
+
+Now I am going to run similar code for all variables of interest. 
+
+```{r dag code 1 all sets, echo=TRUE}
 
 adjustmentSets( ls_conf_no_guard , exposure="c2070" , outcome="conflict" , type="canonical") #independent of others should be invariant
 adjustmentSets( ls_conf_no_guard , exposure="c2070" , outcome="conflict" , type="minimal") #independent of others should be invariant
-
 adjustmentSets( ls_conf_no_guard , exposure="c70" , outcome="conflict" ) #account for river
 adjustmentSets( ls_conf_no_guard , exposure="c70" , outcome="conflict", type="canonical" ) #account for river
 
@@ -134,11 +168,17 @@ adjustmentSets( ls_conf_no_guard , exposure="slope" , outcome="conflict", type="
 
 adjustmentSets( ls_conf_no_guard , exposure="guards" , outcome="conflict" )
 adjustmentSets( ls_conf_no_guard , exposure="guards" , outcome="conflict", type="canonical" )
+```
 
+We can also show an example of a collider in this DAG, using below code.
+```{r dag 1 code identify collider, echo=TRUE}
 ##identifing colliders
 isCollider(ls_conf_no_guard , "hh_size" , "guards","conflict") #shows not a collider on path from hh_size to conflict thru guards
 isCollider(ls_conf_no_guard , "hh_size" , "guards","lsh") #shows guards is collider on path from hh_size to LSH
+```
 
+## Second DAG, livestock conflct but with double guard arrow
+```{r livestock dag yes double}
 ls_conf_yes_guard <- 
   dagitty('dag {
   c2070 -> conflict
@@ -160,7 +200,12 @@ ls_conf_yes_guard <-
 }')
 
 plot(ls_conf_yes_guard)
+```
+
+Now we can run the adjustment sets. 
 ###this will tell us what are the minimal things we need to condition on to make inferences about the relationship between items
+```{r livestock dag yes adjust sets}
+
 adjustmentSets( ls_conf_yes_guard , exposure="c2070" , outcome="conflict" , type="canonical") #independent of others should be invariant
 adjustmentSets( ls_conf_yes_guard , exposure="c2070" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
@@ -181,11 +226,14 @@ adjustmentSets( ls_conf_yes_guard , exposure="slope" , outcome="conflict", type=
 
 adjustmentSets( ls_conf_yes_guard , exposure="guards" , outcome="conflict" )
 adjustmentSets( ls_conf_yes_guard , exposure="guards" , outcome="conflict", type="canonical" )
+```
 
-##identifing colliders
-isCollider(ls_conf_yes_guard , "hh_size" , "guards","conflict") #shows not a collider on path from hh_size to conflict thru guards
-isCollider(ls_conf_yes_guard , "hh_size" , "guards","lsh") #shows guards is collider on path from hh_size to LSH
+Note the last adjustment set. There is no output. That is because we can't make any reliable inference about guards affecting conflict given our DAG. We need to design data collection or a study where this is a single arrow, or a different dag is implied. Double arrows typically mean we need to break apart the timescale. Guards cause conflict in that they in theory reduce it. Conflict causes guards because people may get more guards if they have conflict. We need data that separates these two.
+```
 
+## Crop damage
+
+```{r crop damage dag}
 
 ###crop damage
 crop_damage_dag <- 
@@ -217,7 +265,12 @@ crop_damage_dag <-
   }')
 
 plot(crop_damage_dag)
+```
 
+
+Now lets look at the adjustment sets. 
+
+```{r crop dag adjust sets}
 adjustmentSets( crop_damage_dag , exposure="c2070" , outcome="crop_damage" , type="canonical") #independent of others should be invariant
 adjustmentSets( crop_damage_dag , exposure="c2070" , outcome="crop_damage" , type="minimal") #independent of others should be invariant
 
@@ -252,3 +305,5 @@ adjustmentSets( crop_damage_dag , exposure="farm_size" , outcome="crop_damage" )
 adjustmentSets( crop_damage_dag , exposure="farm_size" , outcome="crop_damage" , type="canonical")
 
 ```
+
+We see the same issue with number of protection strategies in the crop model, as we did with guards in livestock.
