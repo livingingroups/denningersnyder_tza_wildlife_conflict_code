@@ -1,5 +1,5 @@
 ---
-title: "DAGs and Causal Inference for Wuman-Wildlife Conflict in TZA"
+title: "DAGs and Causal Inference for Human-Wildlife Conflict in TZA"
 output: html_document
 bibliography: AllReference.bib
 ---
@@ -68,8 +68,16 @@ playdag <-
   plot(dagitty('dag {
   X->Y
   X->Z
-  Z->Y
+  Z<-Y
                     }'))
+```
+```{r x to y collider is collider, fig.height = 2 , fig.width=3}
+DAGGGG <- dagitty('dag {
+  X->Y
+  X->Z
+  Z<-Y
+                    }')
+isCollider(DAGGGG , "X" , "Z","Y")
 ```
 On any causal pathway, anything where 2 arrows enter is a collider. Unlike pipes and forks, we do not ever want to condition on colliders, as this opens the back door path, and allows information to flow, thus altering inference.
 ### more
