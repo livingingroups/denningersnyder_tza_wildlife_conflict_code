@@ -190,26 +190,51 @@ isCollider(ls_conf_no_guard , "hh_size" , "guards","lsh") #shows guards is colli
 ls_conf_yes_guard <- 
   dagitty('dag {
   c2070 -> conflict
-  bd -> conflict
-  bd <-> road
-  c70 -> conflict
-  hh_size -> lsh
-  hh_size -> guards
-  lsh -> conflict
-  lsh -> guards
-  river -> c70
-  river -> conflict
-  sd -> bd
+  bd -> conflict 
+  bd <-> road 
+  c70 -> conflict 
+  hh_size -> guards 
+  hh_size -> conflict 
+  lsh -> conflict 
+  river -> c70 
+  river -> conflict 
+  sd -> bd 
   sd -> conflict
-  guards <-> conflict
-  slope -> bd
+  bd -> c70
+  bd -> c2070
+  guards <-> conflict 
+  slope -> bd 
   slope -> conflict
-  slope -> road
+  slope -> c2070 
+  slope -> river 
+  slope -> road 
 }')
 
 plot(ls_conf_yes_guard)
 ```
-
+<!-- ls_conf_yes_guard <-  -->
+<!--   dagitty('dag { -->
+<!--   c2070 -> conflict #refuge habitat 4 carnivores, live there more, use as refuge to avoid detection and forage at night -->
+<!--   bd -> conflict #signifieds human resence, carnivores avoid dense areas, indirect thru habitat loss -->
+<!--   bd <-> road #roads pop up, people build there due to access // less certain building density cases roads? includes primary and secondary, tertiatry is more likely with bd causeing roads -->
+<!--   c70 -> conflict #refuge habitat for predtors, riparian zone and dense thickets -->
+<!--   hh_size -> lsh #multi-generational household more folks with $$ banking cattle -->
+<!--   hh_size -> guards #more peole in house, more people to guard // males would be a better indicator unobserved -->
+<!--   lsh -> conflict ## more things to eat, more likely eatern esp w/ 1/0 -->
+<!--   lsh -> guards ##is this real?? may not be consider removing -->
+<!--   river -> c70 #riverive areas causes habitattype which are classified as 20/70 high H20 -->
+<!--   river -> conflict #maybe indiretct thru riparian? animals neede water to live -->
+<!--   sd -> bd #higher density outside pa areas, cities expand /land avaialble to farm further from dense?/500m buffer & preservation -->
+<!--   sd -> conflict -->
+<!--   bd -> c70 -->
+<!--   bd -> c2070 -->
+<!--   guards <-> conflict #discuss -->
+<!--   slope -> bd #more houses built due to ease  -->
+<!--   slope -> conflict # -->
+<!--   slope -> c2070 #more likely on hillsides -->
+<!--   slope -> rivers #water flows down slopes -->
+<!--   slope -> road #slope influences where roads are built -->
+<!-- }') -->
 Now we can run the adjustment sets. 
 ###this will tell us what are the minimal things we need to condition on to make inferences about the relationship between items
 ```{r livestock dag yes adjust sets}
@@ -249,11 +274,9 @@ crop_damage_dag <-
   c2070 -> crop_damage
   c70 -> crop_damage
   river -> c70
-  river -> c2070
   river -> crop_damage
   months_planted -> crop_damage
   farm_size -> crop_damage
-  farm_size -> num_protect
   num_protect -> crop_damage
   crop_damage -> num_protect
   hh_size -> num_protect
@@ -270,12 +293,45 @@ crop_damage_dag <-
   cd -> c70
   cd -> c2070
   cd -> crop_damage
+  slope -> bd 
+  slope -> crop_damage
+  slope -> c2070 
+  slope -> river 
+  slope -> road 
   }')
 
 plot(crop_damage_dag)
 ```
 
-
+ <!-- c2070 -> crop_damage #habitat refuge -->
+  <!-- c70 -> crop_damage  #habitat refuge -->
+  <!-- river -> c70 same -->
+  <!-- river -> crop_damage #thirsty trumpters -->
+  <!-- months_planted -> crop_damage # moar time moar cropz -->
+  <!-- farm_size -> crop_damage #avaialbilty -->
+  <!-- farm_size -> num_protect #not number, but yes type -->
+  <!-- num_protect -> crop_damage -->
+  <!-- crop_damage -> num_protect -->
+  <!-- hh_size -> num_protect #large households engage more effort in protection -->
+  <!-- hh_size -> farm_size #labor avaialbilty  -->
+  <!-- hh_size -> crop_damage #animals avoid more activity -->
+  <!-- see_field -> num_protect #some are only used when you cant or can see field -->
+  <!-- see_field -> crop_damage #react quickly -->
+  <!-- road -> bd #same -->
+  <!-- bd -> crop_damage #bd attracts/defers critters -->
+  <!-- bd -> c2070 #sgg -->
+  <!-- bd -> c70 #sgg -->
+  <!-- sd -> bd #higher density outside pa areas, cities expand /land avaialble to farm further from dense?/500m buffer & preservation --> -->
+  <!-- sd -> crop_damage #different animals have different risk tolerances -->
+  <!-- cd -> c70 #sgg -->
+  <!-- cd -> c2070 #sgg -->
+  <!-- cd -> crop_damage #more crops can be more beneficial to raid -->
+  <!-- slope -> bd  -->
+  <!-- slope -> crop_damage -->
+  <!-- slope -> c2070  -->
+  <!-- slope -> river  -->
+  <!-- slope -> road  -->
+  
 Now lets look at the adjustment sets. 
 
 ```{r crop dag adjust sets}
@@ -312,6 +368,8 @@ adjustmentSets( crop_damage_dag , exposure="hh_size" , outcome="crop_damage" , t
 adjustmentSets( crop_damage_dag , exposure="farm_size" , outcome="crop_damage" )
 adjustmentSets( crop_damage_dag , exposure="farm_size" , outcome="crop_damage" , type="canonical")
 
+adjustmentSets( crop_damage_dag , exposure="slope" , outcome="crop_damage" )
+adjustmentSets( crop_damage_dag , exposure="slope" , outcome="crop_damage" , type="canonical")
 ```
 
 We see the same issue with number of protection strategies in the crop model, as we did with guards in livestock.
