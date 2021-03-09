@@ -1,6 +1,6 @@
 ---
 title: "DAGs and Causal Inference for Human-Wildlife Conflict in TZA"
-output: html_document
+output: pdf_document
 bibliography: AllReference.bib
 ---
 
@@ -91,101 +91,11 @@ First we will do one where we do not have the guards double arrow. As that shoul
 
 First we can draw causal relationships between each variable, and write down a justification.
 
-All 3 of us should work on this together and fill this out. 
-
-1. c2070 -> conflict: because predators use that as habitat
-2. bd -> conflict
-3. bd <-> road
-4. c70 -> conflict
-5. hh_size -> lsh
-6. hh_size -> guards
-7. lsh -> conflict
-8. lsh -> guards
-9. river -> c70
-10. river -> conflict
-11. sd -> bd
-12. sd -> conflict
-13. guards -> conflict
-14. slope -> bd
-15.slope -> conflict
-16. slope -> road
-
-
-```{r livestock dag no double}
-####here is relevant code to DAGs and grumeti
-##imply all relationships
-ls_conf_no_guard <- 
-  dagitty('dag {
-  c2070 -> conflict
-  bd -> conflict
-  bd <-> road
-  c70 -> conflict
-  hh_size -> lsh
-  hh_size -> guards
-  lsh -> conflict
-  lsh -> guards
-  river -> c70
-  river -> conflict
-  sd -> bd
-  sd -> conflict
-  guards -> conflict
-  slope -> bd
-  slope -> conflict
-  slope -> road
-}'
-          )
-```
-
-Now lets plot the DAG.
-
-```{r dag plot}
-plot(ls_conf_no_guard)
-```
-
 One on the advantages of `dagitty` package ia that we can use it to identify the adjustment sets. That is the minimum things we need to adjust for to make an infrence about the relationship between X (i.e. building distance) and Y (livestock conflict).
 
-Lets look at sd. If we run the code below. it will tell us the minimal number of adjustments to make , i.e. things to include in regression, to make a valid inference about how sd affects conflict. Assuming th DAG is true. In this case it is settlement distance and slope.
-```{r adjustment sets dag sd min, echo=TRUE}
-adjustmentSets( ls_conf_no_guard , exposure="bd" , outcome="conflict" , type="minimal") 
-```
-We can also look at the maximum plausible set we can use to see what is safe to include in a large regression.
-```{r adjestment sets dag sd canonical, echo=TRUE}
-adjustmentSets( ls_conf_no_guard , exposure="bd" , outcome="conflict" , type="canonical") 
-```
+## First DAG, livestock conflict.
+This is the one that we are going to use for the paper Please check to make sure all justifications make sense, and see if we missed anything.
 
-Now I am going to run similar code for all variables of interest. 
-
-```{r dag code 1 all sets, echo=TRUE}
-
-adjustmentSets( ls_conf_no_guard , exposure="c2070" , outcome="conflict" , type="canonical") #independent of others should be invariant
-adjustmentSets( ls_conf_no_guard , exposure="c2070" , outcome="conflict" , type="minimal") #independent of others should be invariant
-adjustmentSets( ls_conf_no_guard , exposure="c70" , outcome="conflict" ) #account for river
-adjustmentSets( ls_conf_no_guard , exposure="c70" , outcome="conflict", type="canonical" ) #account for river
-
-adjustmentSets( ls_conf_no_guard , exposure="lsh" , outcome="conflict" ) #account for hh_size
-adjustmentSets( ls_conf_no_guard , exposure="lsh" , outcome="conflict" , type="canonical") #account for hh_size
-
-adjustmentSets( ls_conf_no_guard , exposure="river" , outcome="conflict" )
-adjustmentSets( ls_conf_no_guard , exposure="river" , outcome="conflict" , type="canonical")
-
-adjustmentSets( ls_conf_no_guard , exposure="sd" , outcome="conflict" )
-adjustmentSets( ls_conf_no_guard , exposure="sd" , outcome="conflict" , type="canonical")
-
-adjustmentSets( ls_conf_no_guard , exposure="slope" , outcome="conflict" )
-adjustmentSets( ls_conf_no_guard , exposure="slope" , outcome="conflict", type="canonical" )
-
-adjustmentSets( ls_conf_no_guard , exposure="guards" , outcome="conflict" )
-adjustmentSets( ls_conf_no_guard , exposure="guards" , outcome="conflict", type="canonical" )
-```
-
-We can also show an example of a collider in this DAG, using below code.
-```{r dag 1 code identify collider, echo=TRUE}
-##identifing colliders
-isCollider(ls_conf_no_guard , "hh_size" , "guards","conflict") #shows not a collider on path from hh_size to conflict thru guards
-isCollider(ls_conf_no_guard , "hh_size" , "guards","lsh") #shows guards is collider on path from hh_size to LSH
-```
-
-## Second DAG, livestock conflct but with double guard arrow
 ```{r livestock dag yes double}
 ls_conf_yes_guard <- 
   dagitty('dag {
@@ -194,7 +104,7 @@ ls_conf_yes_guard <-
   bd <-> road 
   c70 -> conflict 
   hh_size -> guards 
-  hh_size -> conflict 
+  hh_size -> lsh 
   lsh -> conflict 
   river -> c70 
   river -> conflict 
@@ -212,31 +122,40 @@ ls_conf_yes_guard <-
 
 plot(ls_conf_yes_guard)
 ```
-<!-- ls_conf_yes_guard <-  -->
-<!--   dagitty('dag { -->
-<!--   c2070 -> conflict #refuge habitat 4 carnivores, live there more, use as refuge to avoid detection and forage at night -->
-<!--   bd -> conflict #signifieds human resence, carnivores avoid dense areas, indirect thru habitat loss -->
-<!--   bd <-> road #roads pop up, people build there due to access // less certain building density cases roads? includes primary and secondary, tertiatry is more likely with bd causeing roads -->
-<!--   c70 -> conflict #refuge habitat for predtors, riparian zone and dense thickets -->
-<!--   hh_size -> lsh #multi-generational household more folks with $$ banking cattle -->
-<!--   hh_size -> guards #more peole in house, more people to guard // males would be a better indicator unobserved -->
-<!--   lsh -> conflict ## more things to eat, more likely eatern esp w/ 1/0 -->
-<!--   lsh -> guards ##is this real?? may not be consider removing -->
-<!--   river -> c70 #riverive areas causes habitattype which are classified as 20/70 high H20 -->
-<!--   river -> conflict #maybe indiretct thru riparian? animals neede water to live -->
-<!--   sd -> bd #higher density outside pa areas, cities expand /land avaialble to farm further from dense?/500m buffer & preservation -->
-<!--   sd -> conflict -->
-<!--   bd -> c70 -->
-<!--   bd -> c2070 -->
-<!--   guards <-> conflict #discuss -->
-<!--   slope -> bd #more houses built due to ease  -->
-<!--   slope -> conflict # -->
-<!--   slope -> c2070 #more likely on hillsides -->
-<!--   slope -> rivers #water flows down slopes -->
-<!--   slope -> road #slope influences where roads are built -->
-<!-- }') -->
+
+  1) c2070 -> conflict: c2070 is refuge habitat for carnivores who live there more and use c2070 as refuge to avoid detection and forage at night.
+  2) bd -> conflict: building density signifies human presence, and carnivores avoiddense areas. 
+  <!-- #signifieds human resence, carnivores avoid dense areas, indirect thru habitat loss -->
+  3) bd <-> road: People will build settlements along roads due to access. It is less certain that building density also causes roads, but possible tertiary roads and smaller roads get built to connect dense places.
+  <!-- #roads pop up, people build there due to access // less certain building density cases roads? includes primary and secondary, tertiatry is more likely with bd causeing roads -->
+  4) c70 -> conflict: c70 is refuge habitat for predators, i.e. riparian zone and dense thickets. Loss of c70, causes loss of habitat and can increase conflict.
+  5) hh_size -> lsh: Larger households are often mutli-generational, which means they have more capital which is often invested in cattle
+  <!-- #multi-generational household more folks with $$ banking cattle -->
+  6) hh_size -> guards: The more people in the house, the more there are avaiable to act as guards.
+  <!-- #more peole in house, more people to guard // males would be a better indicator unobserved -->
+  7) lsh -> conflict: The greater number of cattle there are to eat, the more likely they will be predated. 
+  <!-- ## more things to eat, more likely eatern esp w/ 1/0 -->
+  <!-- lsh -> guards ##is this real?? may not be consider removing -->
+  8) river -> c70: Rivers are habitat for vegataion communites calssified as c2070.
+  <!-- #riverive areas causes habitattype which are classified as 20/70 high H20 -->
+  9) river -> conflict: Animals need water to live, may raid more when less water available.
+  <!-- #maybe indiretct thru riparian? animals neede water to live -->
+  10) sd -> bd: laws in place to prevent people from buiding within a 500m buffer of reserve, so they build elsewhere. People prefer to build away from PA, and really only do so out of necessity
+  <!-- #higher density outside pa areas, cities expand /land avaialble to farm further from dense?/500m buffer & preservation -->
+  11) sd -> conflict: some species prefer to be in PA, and are only likely raid farms close to boundaries. Others venture out to raid farms.
+  12) bd -> c70: construction of buildings causes loss in c70 and changes classification probability
+  13) bd -> c2070: construction of buildings causes loss in c2070 and changes classification probability
+  14) guards <-> conflict: Guards in theory reduce conflict if effective. That is their point. However, due to conflict, farmers may be more inclined to hire guards. To break this bidirectional arrow, one could randomly apply numbers of guards to people's herds, prevenrnt them from changing it, and measure conflict. However, this is unethical. Instead, one would need to measure conflict levels, or amount of crop loss, as a function of the number of guards introduced, or used at each timestep.
+  15) slope -> bd: More houses are built on less hilly land for ease of construction and material transport.
+  16) slope -> conflict: Some predators travel in hillier areas
+  17) slope -> c2070: c2070 is more likely on hillsides either dur to the difficulty require in cutting it down, or ecological conditions.
+  18) slope -> rivers: water flows down hills and is likely to be in places with decreasing slopes. 
+  19) slope -> road:  slope influences where roads are built, the are preferntially built in easier, less hilly places and lower mountain passes.
+
 Now we can run the adjustment sets. 
+
 ###this will tell us what are the minimal things we need to condition on to make inferences about the relationship between items
+
 ```{r livestock dag yes adjust sets}
 
 adjustmentSets( ls_conf_yes_guard , exposure="c2070" , outcome="conflict" , type="canonical") #independent of others should be invariant
@@ -254,6 +173,9 @@ adjustmentSets( ls_conf_yes_guard , exposure="river" , outcome="conflict" , type
 adjustmentSets( ls_conf_yes_guard , exposure="sd" , outcome="conflict" )
 adjustmentSets( ls_conf_yes_guard , exposure="sd" , outcome="conflict" , type="canonical")
 
+adjustmentSets( ls_conf_yes_guard , exposure="bd" , outcome="conflict" )
+adjustmentSets( ls_conf_yes_guard , exposure="bd" , outcome="conflict" , type="canonical")
+
 adjustmentSets( ls_conf_yes_guard , exposure="slope" , outcome="conflict" )
 adjustmentSets( ls_conf_yes_guard , exposure="slope" , outcome="conflict", type="canonical" )
 
@@ -264,7 +186,7 @@ adjustmentSets( ls_conf_yes_guard , exposure="guards" , outcome="conflict", type
 Note the last adjustment set. There is no output. That is because we can't make any reliable inference about guards affecting conflict given our DAG. We need to design data collection or a study where this is a single arrow, or a different dag is implied. Double arrows typically mean we need to break apart the timescale. Guards cause conflict in that they in theory reduce it. Conflict causes guards because people may get more guards if they have conflict. We need data that separates these two.
 ```
 
-## Crop damage
+## Second DAG: Crop damage
 
 ```{r crop damage dag}
 
@@ -284,7 +206,7 @@ crop_damage_dag <-
   hh_size -> crop_damage
   see_field -> num_protect
   see_field -> crop_damage
-  road -> bd
+  road <-> bd
   bd -> crop_damage
   bd -> c2070
   bd -> c70
@@ -303,34 +225,34 @@ crop_damage_dag <-
 plot(crop_damage_dag)
 ```
 
- <!-- c2070 -> crop_damage #habitat refuge -->
-  <!-- c70 -> crop_damage  #habitat refuge -->
-  <!-- river -> c70 same -->
-  <!-- river -> crop_damage #thirsty trumpters -->
-  <!-- months_planted -> crop_damage # moar time moar cropz -->
-  <!-- farm_size -> crop_damage #avaialbilty -->
-  <!-- farm_size -> num_protect #not number, but yes type -->
-  <!-- num_protect -> crop_damage -->
-  <!-- crop_damage -> num_protect -->
-  <!-- hh_size -> num_protect #large households engage more effort in protection -->
-  <!-- hh_size -> farm_size #labor avaialbilty  -->
-  <!-- hh_size -> crop_damage #animals avoid more activity -->
-  <!-- see_field -> num_protect #some are only used when you cant or can see field -->
-  <!-- see_field -> crop_damage #react quickly -->
-  <!-- road -> bd #same -->
-  <!-- bd -> crop_damage #bd attracts/defers critters -->
-  <!-- bd -> c2070 #sgg -->
-  <!-- bd -> c70 #sgg -->
-  <!-- sd -> bd #higher density outside pa areas, cities expand /land avaialble to farm further from dense?/500m buffer & preservation --> -->
-  <!-- sd -> crop_damage #different animals have different risk tolerances -->
-  <!-- cd -> c70 #sgg -->
-  <!-- cd -> c2070 #sgg -->
-  <!-- cd -> crop_damage #more crops can be more beneficial to raid -->
-  <!-- slope -> bd  -->
-  <!-- slope -> crop_damage -->
-  <!-- slope -> c2070  -->
-  <!-- slope -> river  -->
-  <!-- slope -> road  -->
+  1) c2070 -> crop_damage: c2070 is habitat refuge for crop raiders. More habitat could mean there are more places to hide, or less habitat could mean that they are forced to raid crops more. 
+  2) c70 -> crop_damage: c70 is habitat refuge for crop raiders. More habitat could mean there are more places to hide, or less habitat could mean that they are forced to raid crops more. 
+  3) river -> c70: the preence of water in rivers creates conditions where c70 classified lands grow.
+  4) river -> crop_damage: Animals dwell near rivers, and are likely to cause conflict at places near them as a consequence.
+  5) months_planted -> crop_damage : The more time there are crops in the field, the more likely conflict will be observed,
+  6) farm_size -> crop_damage: That larger the farm, the more available crops are, and the more likely they will get damaged.
+  7) farm_size -> num_protect #farm size influences the type of protection, which influences the number of strategies used. this is really indirect.
+  8) num_protect -> crop_damage: Using a range of strategies may reduce crop raiding.
+  9) crop_damage -> num_protect: desperate farmers with crop damage may try lots of new crop strategies out of desperation.
+ 10)  hh_size -> num_protect: larger households engage more effor in protection 
+  11) hh_size -> farm_size:more avialble people to work fields, makes it possible to have a larger farm
+  12) hh_size -> crop_damage: Animals avoid field with more human activity 
+  13) see_field -> num_protect: Some strategies can only be used when you can or can't see field
+  14) see_field -> crop_damage: farmers that see their field can react quickly and minimize damage
+  15) road <-> bd: People will build settlements along roads due to access. It is less certain that building density also causes roads, but possible tertiary roads and smaller roads get built to connect dense places.
+  16) bd -> crop_damage: building density attracts and deters different crop raiders (i.e. vervets vs. elephants)
+  17) bd -> c2070: construction of buildings causes loss in c2070 and changes classification probability
+  18) bd -> c70: construction of buildings causes loss in c70 and changes classification probability
+  19) sd -> bd: Cities expand toawrd protected areas, less dense at edges. 500m buffer & preservation mean that density is lower right next to PA.
+  20) sd -> crop_damage: Different animals have different risk tolerances, some venture far from PA.
+  21) cd -> c70: increased crop density and land conversion means there is less likely to be c70.
+  22) cd -> c2070: increased crop density and land conversion means there is less likely to be c2070.
+  23) cd -> crop_damage: more beneficial to raid areas with a higher density of crops.
+  24) slope -> bd: More houses are built on less hilly land for ease of construction and material transport.
+  25) slope -> crop_damage: elephants don't like traveling on hills, so less likely to damage farms on slopes.
+  26) slope -> c2070: 2070 is more likely on hillsides either dur to the difficulty require in cutting it down, or ecological conditions.
+  27) slope -> river: water flows down hills and is likely to be in places with decreasing slopes. 
+  28) slope -> road:  slope influences where roads are built, the are preferntially built in easier, less hilly places and lower mountain passes.
   
 Now lets look at the adjustment sets. 
 
