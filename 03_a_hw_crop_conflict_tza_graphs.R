@@ -1,7 +1,264 @@
 require(rethinking)
 require(RColorBrewer)
+###########dotplots of parameters
+
+pbd <- extract.samples(mc_bd_min)
+pcr <- extract.samples(mc_cd_min)
+pc70 <- extract.samples(mc_c70_min)
+pc2070 <- extract.samples(mc_c2070_min)
+priv <- extract.samples(mc_riv_min)
+psd <- extract.samples(mc_sd_min)
+psl <- extract.samples(mc_slope_min)
+pfs <- extract.samples(mc_fs_min)
+phh <- extract.samples(mc_hh_min)
+psee <- extract.samples(mc_see_min)
+
+p_crop_params <- list(
+  b_BD_baboon = pbd$b_BD + pbd$b_BDs[,1],
+  b_CR_baboon = pcr$b_CR + pcr$b_CRs[,1],
+  b_C70_baboon = pc70$b_C70 + pc70$b_C70s[,1],
+  b_C2070_baboon = pc2070$b_C2070 + pc2070$b_C2070s[,1],
+  #b_RD_baboon = p$b_RD + p$b_RDs[,1],
+  b_RIV_baboon = priv$b_RIV + priv$b_RIVs[,1],
+  b_SD_baboon = psd$b_SD + psd$b_SDs[,1],
+  b_SL_baboon = psl$b_SL + psl$b_SLs[,1],
+  b_FS_baboon = pfs$b_FS + pfs$b_FSs[,1],
+  b_HH_baboon = phh$b_HH + phh$b_HHs[,1],
+  b_SEE_baboon = psee$b_SEE + psee$b_SEEs[,1],
+  b_BD_elephant = pbd$b_BD + pbd$b_BDs[,2],
+  b_CR_elephant = pcr$b_CR + pcr$b_CRs[,2],
+  b_C70_elephant = pc70$b_C70 + pc70$b_C70s[,2],
+  b_C2070_elephant = pc2070$b_C2070 + pc2070$b_C2070s[,2],
+  #b_RD_elephant = p$b_RD + p$b_RDs[,2],
+  b_RIV_elephant = priv$b_RIV + priv$b_RIVs[,2],
+  b_SD_elephant = psd$b_SD + psd$b_SDs[,2],
+  b_SL_elephant = psl$b_SL + psl$b_SLs[,2],
+  b_FS_elephant = pfs$b_FS + pfs$b_FSs[,2],
+  b_HH_elephant = phh$b_HH + phh$b_HHs[,2],
+  b_SEE_elephant = psee$b_SEE + psee$b_SEEs[,2],
+  b_BD_vervet = pbd$b_BD + pbd$b_BDs[,3],
+  b_CR_vervet = pcr$b_CR + pcr$b_CRs[,3],
+  b_C70_vervet = pc70$b_C70 + pc70$b_C70s[,3],
+  b_C2070_vervet = pc2070$b_C2070 + pc2070$b_C2070s[,3],
+  #b_RD_vervet = p$b_RD + p$b_RDs[,3],
+  b_RIV_vervet = priv$b_RIV + priv$b_RIVs[,3],
+  b_SD_vervet = psd$b_SD + psd$b_SDs[,3],
+  b_SL_vervet = psl$b_SL + psl$b_SLs[,3],
+  b_FS_vervet = pfs$b_FS + pfs$b_FSs[,3],
+  b_HH_vervet = phh$b_HH + phh$b_HHs[,3],
+  b_SEE_vervet = psee$b_SEE + psee$b_SEEs[,3]
+)
+plot(precis(p_crop_params))
+
+pdf(file = "crop_conflict_species_parameter_dotplots.pdf",   width = 7, height = 7) 
+plot(precis(p_crop_params))
+dev.off()
+####lets plot per species effects from minimal models
+av_z <- matrix(0,1000,length(unique(dc$village_index))) #need to add zeros in VE to plot main effect
+ylabels=c("probability baboon crop conflict" , "probability elephant crop conflict","probability vervet crop conflict")
+colpal=c("blue" , "grey", "green")
+#c70
+plot_seq <- seq(from=min(dc$c70_std) , to=max(dc$c70_std) , length=30)
+
+for (i in 1:3){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    c70_std = plot_seq,
+    river_std= rep(0,30),
+    build_dens_std= rep(0,30),
+    crop_std= rep(0,30),
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(mc_c70_min, data=dpred , replace=list(village_index=av_z) )
+  if(i==1){
+    pdf(file = "plots/c70_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$baboon_c ~ dc$c70_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" , xaxt='n' , cex.lab=1.3)
+    }
+  if(i==2){
+    pdf(file = "plots/c70_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$elephant_c ~ dc$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" ,  xaxt='n' , cex.lab=1.3)
+    }
+  if(i==3){
+    pdf(file = "plots/c70_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$vervet_c ~ dc$c70_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" ,  xaxt='n' , cex.lab=1.3)
+    }
+  
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  
+  axis( 1 , at= ( seq(from=0 , to=0.25 , by=0.05) - mean(dc$c70))/sd(dc$c70) , labels= seq(from=0 , to=0.25 , by=0.05) )
+  dev.off()
+}
 
 
+#c2070
+precis(mc_c2070_min , depth=2)
+plot_seq <- seq(from=min(dc$c2070_std) , to=max(dc$c2070_std) , length=30)
+
+for (i in 1:3){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    crop_std=rep(0,30),
+    c2070_std = plot_seq ,
+    build_dens_std= rep(0,30),
+    slope_std= rep(0,30),
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(mc_c2070_min, data=dpred , replace=list(village_index=av_z) )
+  if(i==1){
+    pdf(file = "plots/c2070_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$baboon_c ~ dc$c2070_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n' , cex.lab=1.3)
+    }
+  if(i==2){
+    pdf(file = "plots/c2070_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$elephant_c ~ dc$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n' , cex.lab=1.3)
+    }
+  if(i==3){
+    pdf(file = "plots/c2070_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$vervet_c ~ dc$c2070_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n' , cex.lab=1.3)
+    }
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  axis( 1 , at= ( seq(from=0 , to=0.7 , by=0.1) - mean(dc$c2070))/sd(dc$c2070) , labels= seq(from=0 , to=0.70 , by=0.1) )
+  dev.off()
+}
+
+###crop density
+precis(mc_cd_min)
+plot_seq <- seq(from=min(dc$crop_std) , to=max(dc$crop_std) , length=30)
+
+for (i in 1:3){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    settle_dist_km_std=rep(0,30),
+    slope_std = rep(0,30),
+    crop_std= plot_seq,
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(mc_cd_min, data=dpred , replace=list(village_index=av_z) )
+  
+  if(i==1){
+    pdf(file = "plots/crop_dens_crop_min_conflict_bab.pdf",   width = 6, height = 6)
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$baboon_c ~ dc$crop_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density" ,  xaxt='n' , cex.lab=1.3)
+    }
+  
+  if(i==2){
+    pdf(file = "plots/crop_dens_crop_min_conflict_ele.pdf",   width = 6, height = 6)
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$elephant_c ~ dc$crop_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density" ,  xaxt='n' , cex.lab=1.3)
+    }
+  
+  if(i==3){
+    pdf(file = "plots/crop_dens_crop_min_conflict_ver.pdf",width = 6, height = 6)
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$vervet_c ~ dc$crop_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density" ,  xaxt='n' , cex.lab=1.3)
+    }
+  
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  axis( 1 , at= ( seq(from=0 , to=1 , by=0.1) - mean(dc$crop))/sd(dc$crop) , labels= seq(from=0 , to=1 , by=0.1) )
+  dev.off()
+}
+
+##settlement distance
+precis(mc_sd_min)
+plot_seq <- seq(from=min(dc$settle_dist_km_std) , to=max(dc$settle_dist_km_std) , length=30)
+
+for (i in 1:3){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    settle_dist_km_std=plot_seq,
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(mc_sd_min, data=dpred , replace=list(village_index=av_z) )
+  par( mar=c(4,4,1,1)+.1 )
+    
+    if(i==1){
+      pdf(file = "plots/settle_dist_crop_min_conflict_bab.pdf",   width = 6, height = 6)
+      par( mar=c(4,4,1,1)+.1 )
+      plot(dc$baboon_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n',  cex.lab=1.3)}
+    
+    if(i==2){
+      pdf(file = "plots/settle_dist_crop_min_conflict_ele.pdf",   width = 6, height = 6)
+      par( mar=c(4,4,1,1)+.1 )
+      plot(dc$elephant_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n' ,  cex.lab=1.3) }
+    
+    if(i==3){
+      pdf(file = "plots/settle_dist_crop_min_conflict_verv.pdf",   width = 6, height = 6)
+      par( mar=c(4,4,1,1)+.1 )
+      plot(dc$vervet_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n' ,  cex.lab=1.3) }
+    
+    pred_mean <- apply(link2 , 2 , mean)
+    lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+    for (j in sample( c(1:1000) , 100) ){
+      lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+    }
+    axis( 1 , at= ( c(0:12) - mean(dc$settle_dist_km))/sd(dc$settle_dist_km) , labels=c(0:12))
+    
+    dev.off()
+}
+
+###rivers
+precis(mc_riv_min)
+plot_seq <- seq(from=min(dc$river_std) , to=max(dc$river_std) , length=30)
+
+for (i in 1:3){
+  
+  dpred <- list(
+    village_index=rep(1,30),
+    slope_std = rep(0,30) ,
+    river_std= plot_seq,
+    species_index=rep(i,30)
+  )
+  
+  link2 <- link(mc_riv_min, data=dpred , replace=list(village_index=av_z) )
+  if(i==1){
+    pdf(file = "plots/river_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$baboon_c ~ dc$river_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density" ,  xaxt='n' , cex.lab=1.3)}
+  if(i==2){
+    pdf(file = "plots/river_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$elephant_c ~ dc$river_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density" ,  xaxt='n' , cex.lab=1.3)}
+  if(i==3){
+    pdf(file = "plots/river_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$vervet_c ~ dc$river_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density" ,  xaxt='n' , cex.lab=1.3)}
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  axis( 1 , at= ( seq(from=0 , to=0.12 , by=0.02) - mean(dc$river))/sd(dc$river) , labels= seq(from=0 , to=0.12 , by=0.02) )
+  dev.off()
+}
+
+###settlement distance
 
 #########################
 # mc0 <- ulam(

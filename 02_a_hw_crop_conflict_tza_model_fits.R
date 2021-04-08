@@ -1,159 +1,5 @@
-library('rstan')
 require(rethinking)
-require(lubridate)
-require(RColorBrewer)
-require(janitor)
 require(dagitty)
-
-# #########LIVESTOCK lions and hyenas
-# settle_dist_km_std   LS   b_SD 
-# household_size_std   HH   b_HH
-# gse_slope30m_std	 LS   b_SL
-# livestock_head_std   HH   b_LSH 
-# b_C70s               LS   b_C70
-# b_C2070s             LS   b_C2070
-# river_std			 LS   b_RIV
-# build_dens_std		 LS   b_BD
-# road_std			 LS   b_RD
-# guard_ave_day_std	 HH   b_GU
-# 
-# 
-# ############CROPS baboons and elephants 
-# settle_dist_km_std		LS    b_SD
-# farm_size_std			HH    b_FS
-# household_size_std		HH    b_HH
-# see_field 				HH    b_SEE
-# b_C70s      			LS    b_C70
-# b_C2070s				LS    b_C2070
-# river_std				LS    b_RIV
-# build_dens_std			LS    b_BD
-# road_std				LS    b_RD
-# months planted 			HH    b_MP
-# crop                    HH    b_CR
-# 
-# crop_prot               HH 
-
-
-this <- system('hostname', TRUE)
-if (this == "DESKTOP-J9EEJ0L") {
-  dp <- "C:/Users/Kate/Dropbox/R_data/Dis_Prop/LUC/hwc_risk/data"
-} else {
-  dp <- "Brendan or kristen's working directory" ##
-}
-
-setwd(dp) ### set directory
-
-
-
-# hw <- read.csv("~/Downloads/SS_Final_NoDups.csv") #old version with errorz
-#hw <- read.csv("~/Downloads/Spatial_Household_Survey_Clean_1Jun20sp.csv") 
-#hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuild.csv")
-#hw <-  read.csv("~/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
-#hw <-  read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIES.csv")
-
-hw <- read.csv("C:/Users/Kate/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
-hw <- read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
-
-###eleganterish way to replace NA with zero so
-names(hw[42:49]) #check names. assume are livestock types in order
-
-for (species in names(hw[42:49]) ){
-  hw[which( is.na(hw[,species]) ) , species] <- 0 #replaces NA with zeros
-  hw[,species] <- ifelse(hw[,species] < 0 , 0 , hw[,species]) #makes negative values zero
-}
-
-hw$guard_ave_day <- ifelse(hw$guard_ave_day < 0 , 0 , hw$guard_ave_day)
-hw$livestock_head <- hw[,"cattle"] + hw[,"sheep"] + hw[,"goat"] + hw[,"donkey"]
-hw$livestock_head_all <- hw[,"cattle"] +hw[,"sheep"] + hw[,"goat"] + hw[,"donkey"] +  hw[,"dog"] +  hw[,"chicken"] +  hw[,"duck"] +hw[,"other_livestock"] #i don't think this is correct anymore
-
-hw[hw == "-2147483648"] <- "NA"
-
-hw$farm <- ifelse(hw$farm=="Yes" , 1 , 0)
-hw$livestock <- ifelse(hw$livestock=="Yes" , 1 , 0)
-hw$see_field <- ifelse(hw$field_sight=="Yes" , 1 , 0)
-hw$months_planted <- as.integer(hw$months_planted)
-
-##protection strategies
-sort(unique(hw$med_lar_lv_prot))
-hw$med_lar_lv_prot <- as.character(hw$med_lar_lv_prot)
-sort(unique(hw$med_lar_lv_prot))
-
-hw$lv_prot_day_guard <- ifelse( grepl( "Day_guard", hw$med_lar_lv_prot) , 1 , 0 )
-hw$lv_prot_day_dogs <- ifelse( grepl( "Day_dogs", hw$med_lar_lv_prot) , 1 , 0 )
-hw$lv_prot_night_dogs <- ifelse( grepl( "Night_dogs",hw$med_lar_lv_prot) , 1 , 0 )
-hw$lv_prot_night_contain <- ifelse( grepl( "Night_contain", hw$med_lar_lv_prot) , 1 , 0 )
-#other is excluded
-
-sort(unique(hw$crop_prot))
-hw$crop_prot <- as.character(hw$crop_prot)
-sort(unique(hw$crop_prot))
-hw$crop_prot_guard <- ifelse( grepl( "Guarding", hw$crop_prot) , 1 , 0 )
-hw$crop_prot_chase <- ifelse( grepl( "Chasing", hw$crop_prot) , 1 , 0 )
-hw$crop_prot_fire <- ifelse( grepl( "Fire", hw$crop_prot ) , 1 , 0 )
-hw$crop_prot_shout <- ifelse( grepl( "Shouting", hw$crop_prot ) , 1 , 0 )
-hw$crop_prot_sisal <- ifelse( grepl( "Sisal", hw$crop_prot ) , 1 , 0 )
-hw$crop_prot_w_fence <- ifelse( grepl( "Wire_fence", hw$crop_prot ) , 1 , 0 )
-hw$crop_prot_music <- ifelse( grepl( "Music", hw$crop_prot ) , 1 , 0 )
-hw$crop_prot_none<- ifelse( grepl( "None", hw$crop_prot) , 1 , 0 )
-hw$num_crop_prot_strats <- hw$crop_prot_guard + hw$crop_prot_chase + hw$crop_prot_fire + hw$crop_prot_shout + hw$crop_prot_sisal + hw$crop_prot_w_fence + hw$crop_prot_music 
-hw$household_size <- as.integer(hw$household_size)
-
-
-d <- janitor::clean_names(hw)
-
-d$med_lar_lv_prot
-d$months_planted
-
-##need household ID
-myvars <- c("conflict" , "village", "species" , "elephant_c", "baboon_c" , "vervet_c", "hyena_l" , "lion_l" , "farm_walk" , "farm_size" , "household_size" , "fid" , "settle_dist" , "see_field" , "c70" , "c2070" ,"river" , "road" , "crop" , "gse_slope30m" ,"build_dens" , "cattle" , "sheep" , "goat" , "donkey" , "farm" , "livestock" , "months_planted" , "lv_prot_day_guard" , "lv_prot_day_dogs" , "lv_prot_night_dogs" , "lv_prot_night_contain" , "crop_prot_music" , "crop_prot_w_fence" , "crop_prot_sisal" , "crop_prot_shout" , "crop_prot_fire" , "crop_prot_chase" , "crop_prot_guard" , "guard_ave_day" , "num_crop_prot_strats" , "livestock_head")
-#fthese are all the variables we are interested in 
-d <- d[myvars]
-
-
-sort(unique(hw$village)) #check this
-###create index variables for each village
-
-d[d == "-2147483648"] <- "NA"
-
-##############################CROP DAMAGE##############################
-
-#fthese are all the variables we are interested in 
-
-myvars2 <- c("conflict" , "village", "elephant_c", "baboon_c" ,"vervet_c",  "farm_size" , "household_size" , "fid" , "settle_dist" , "see_field" , "c70" , "c2070" ,"river" , "road" , "crop" ,"build_dens" , "farm"  , "months_planted"  , "crop_prot_music" , "crop_prot_w_fence" , "crop_prot_sisal" , "crop_prot_shout" , "crop_prot_fire" , "crop_prot_chase" , "crop_prot_guard" , "species" , "num_crop_prot_strats" , "gse_slope30m" )
-
-dc <- d[myvars2]
-
-dc <- dc[dc$species!="lion",]
-dc <- dc[dc$species!="hyena",]
-
-dc <- dc[dc$farm==1,] #only look at conflicts with households that have farms
-
-
-nrow(dc) #now 1239
-str(dc)
-dc <- dc[complete.cases(dc), ] ##we will impute later but we lose 34 observations
-dc <- droplevels(dc)
-dc$crop_std <- (dc$crop-mean(dc$crop) )/sd(dc$crop)
-dc$settle_dist_km <- dc$settle_dist/1000
-dc$settle_dist_km_std <- (dc$settle_dist_km-mean(dc$settle_dist_km) )/sd(dc$settle_dist_km)
-dc$farm_size_std <- (dc$farm_size -mean(dc$farm_size ) )/sd(dc$farm_size)
-dc$c70_std <- (dc$c70-mean(dc$c70) )/sd(dc$c70)
-dc$c2070_std <- (dc$c2070-mean(dc$c2070) )/sd(dc$c2070)
-dc$village <- as.character(dc$village)
-dc$village[dc$fid==179] <- "Nyamatoke_jklol"
-dc$village_index <- as.integer(as.factor(dc$village))
-dc$river_std <- (dc$river-mean(dc$river) )/sd(dc$river) #
-dc$crop_std <- (dc$crop-mean(dc$crop) )/sd(dc$crop) 
-dc$build_dens_std <- (dc$build_dens-mean(dc$build_dens) )/sd(dc$build_dens) ##nonlinear
-dc$household_size_std <- (dc$household_size-mean(dc$household_size) )/sd(dc$household_size)
-dc$road_std <- (dc$road-mean(dc$road) )/sd(dc$road)
-dc$slope_std <- (dc$gse_slope30m-mean(dc$gse_slope30m) )/sd(dc$gse_slope30m) 
-dc$months_planted_std <- (dc$months_planted-mean(dc$months_planted) )/sd(dc$months_planted) 
-dc$num_crop_prot_strats_std <- (dc$num_crop_prot_strats-mean(dc$num_crop_prot_strats) )/sd(dc$num_crop_prot_strats) 
-nrow(dc)
-
-dc$species_index <- as.integer(as.factor(dc$species))
-dc$village_index <- as.integer(as.factor(dc$village))
 
 ########add in dag########3
 crop_damage_dag <- 
@@ -217,7 +63,7 @@ mc_c70_min <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] + 
-      (b_C70 + b_C70s[species_index])*c2070_std +
+      (b_C70 + b_C70s[species_index])*c70_std +
       (b_BD + b_BDs[species_index])*build_dens_std +
       (b_CR + b_CRs[species_index])*crop_std +
       (b_RIV + b_RIVs[species_index])*river_std,
@@ -344,7 +190,7 @@ mc_see_min <- map2stan(
     c(as,b_SEEs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=4000 , log_lik=TRUE)
+  ), data=dc , chains=4 , cores=4 , iter=1000 , log_lik=TRUE)
 
 precis(mc_see_min, depth=2)
 
@@ -373,11 +219,11 @@ mc_fs_min <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] 
-    + (b_HH + b_HHs[species_index])*household_size_std,
+    + (b_FS + b_FSs[species_index])*farm_size_std,
     a ~ normal( 0 , 1 ),
-    b_HH ~ normal( 0 , 1 ),
+    b_FS ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(0,sigma_v),
-    c(as,b_HHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(as,b_FSs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
   ), data=dc , chains=4 , cores=4 , iter=1000 , log_lik=TRUE)
@@ -425,6 +271,7 @@ mc_landscape <- map2stan(
 
 precis(mc_landscape , depth=2)
 
+compare(mc_bd_min,mc_c2070_min,mc_c70_min,mc_cd_min,mc_fs_min,mc_hh_min,mc_landscape,mc_mp_min,mc_riv_min,mc_sd_min,mc_see_min,mc_slope_min)
 #########################
 # mc0 <- ulam(
 #   alist(
