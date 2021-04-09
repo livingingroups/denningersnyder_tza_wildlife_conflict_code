@@ -13,7 +13,7 @@ if (this == "DESKTOP-J9EEJ0L") {
 
 setwd(dp) ### set directory
 
-hw <- read.csv("C:/Users/Kate/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
+#hw <- read.csv("C:/Users/Kate/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
 hw <- read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
 
 ###eleganterish way to replace NA with zero so
