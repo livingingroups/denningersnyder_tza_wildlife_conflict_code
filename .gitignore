@@ -8,3 +8,4 @@
 .html
 #below ignores all files in plots folder
 **/plots
+**/raster_data_for_preds

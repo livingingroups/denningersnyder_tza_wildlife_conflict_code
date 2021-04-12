@@ -199,12 +199,12 @@ crop_damage_dag <-
   river -> crop_damage
   months_planted -> crop_damage
   farm_size -> crop_damage
+  farm_size -> num_protect
   num_protect -> crop_damage
   crop_damage -> num_protect
   hh_size -> num_protect
   hh_size -> farm_size
   hh_size -> crop_damage
-  see_field -> num_protect
   see_field -> crop_damage
   road <-> bd
   bd -> crop_damage
@@ -219,7 +219,8 @@ crop_damage_dag <-
   slope -> crop_damage
   slope -> c2070 
   slope -> river 
-  slope -> road 
+  slope -> road
+  slope -> cd
   }')
 
 plot(crop_damage_dag)
@@ -236,8 +237,8 @@ plot(crop_damage_dag)
   9) crop_damage -> num_protect: desperate farmers with crop damage may try lots of new crop strategies out of desperation.
  10)  hh_size -> num_protect: larger households engage more effor in protection 
   11) hh_size -> farm_size:more avialble people to work fields, makes it possible to have a larger farm
-  12) hh_size -> crop_damage: Animals avoid field with more human activity 
-  13) see_field -> num_protect: Some strategies can only be used when you can or can't see field
+  12) hh_size -> crop_damage: Animals avoid field with more human activity
+  13)   farm_size -> num_protect: larger farms employ more protection strategies, particularly things like fences etc. that do not require folks standing there 
   14) see_field -> crop_damage: farmers that see their field can react quickly and minimize damage
   15) road <-> bd: People will build settlements along roads due to access. It is less certain that building density also causes roads, but possible tertiary roads and smaller roads get built to connect dense places.
   16) bd -> crop_damage: building density attracts and deters different crop raiders (i.e. vervets vs. elephants)
@@ -253,6 +254,7 @@ plot(crop_damage_dag)
   26) slope -> c2070: 2070 is more likely on hillsides either dur to the difficulty require in cutting it down, or ecological conditions.
   27) slope -> river: water flows down hills and is likely to be in places with decreasing slopes. 
   28) slope -> road:  slope influences where roads are built, the are preferntially built in easier, less hilly places and lower mountain passes.
+  29) slope -> cd: crops are more densley planted in flat areas (less runoff, easier to plant things close together)
   
 Now lets look at the adjustment sets. 
 
@@ -294,4 +296,127 @@ adjustmentSets( crop_damage_dag , exposure="slope" , outcome="crop_damage" )
 adjustmentSets( crop_damage_dag , exposure="slope" , outcome="crop_damage" , type="canonical")
 ```
 
-We see the same issue with number of protection strategies in the crop model, as we did with guards in livestock.
+Now we can look at all of the direct arrows to estimate the effect of X on Y, and determine which covariates to include in the models relevant to the predictor of interest.
+
+For c2070 the minimal model `m_c2070_min` includes: 
+```{r}
+ adjustmentSets( crop_damage_dag , exposure="c2070" , outcome="crop_damage" , type="minimal") #independent of others should be invariant
+```
+while the canonical model, `m_c70_c2070_can` includes:
+```{r}
+ adjustmentSets( crop_damage_dag , exposure="c2070" , outcome="crop_damage" , type="canonical") #independent of others should be invariant
+```
+
+For c70 the minimal model `m_c70_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="c70" , outcome="crop_damage" , type="minimal") 
+```
+
+For c70 the canonical model `m_c70_c2070_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="c70" , outcome="crop_damage", type="canonical" ) 
+```
+
+
+For cd the minimal model `m_cd_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="cd" , outcome="crop_damage" , type="minimal") 
+```
+
+For cd the canonical model `m_cd_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="cd" , outcome="crop_damage", type="canonical" ) 
+```
+
+For river the minimal model `m_riv_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="river" , outcome="crop_damage" )
+```
+
+For river the minimal model `m_riv_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="river" , outcome="crop_damage" , type="canonical")
+```
+
+For settlement distance the minimal model `m_sd_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="sd" , outcome="crop_damage" )
+```
+It requires no other covariates.
+
+For settlement distance the canonical model `m_sd_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="sd" , outcome="crop_damage" , type="canonical")
+```
+
+For building density the minimal model `m_bd_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="bd" , outcome="crop_damage" )
+```
+
+For building density the canonical model `m_sd_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="bd" , outcome="crop_damage" , type="canonical")
+```
+
+For months planted the minimal model `m_mp_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="months_planted" , outcome="crop_damage" )
+```
+
+For months planted the canonical model `m_fs_mp_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="months_planted" , outcome="crop_damage" , type="canonical")
+```
+
+For see field the minimal model `m_see_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="see_field" , outcome="crop_damage" )
+```
+
+For see field the canonical model `m_see_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="see_field" , outcome="crop_damage" , type="canonical")
+```
+
+For number of protection strategies the minimal model `m_np_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="num_protect" , outcome="crop_damage" )
+```
+
+For number of protection strategies the canonical model `m_np_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="num_protect" , outcome="crop_damage" , type="canonical")
+```
+
+For household size the minimal model `m_hhs_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="hh_size" , outcome="crop_damage" )
+```
+
+For household size the canonical model `m_hhs_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="hh_size" , outcome="crop_damage" , type="canonical")
+```
+
+For farm size the minimal model `m_fs_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="farm_size" , outcome="crop_damage" )
+```
+
+For farm size the canonical model `m_fs_mp_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="farm_size" , outcome="crop_damage" , type="canonical")
+```
+
+For slope the minimal model `m_slope_min` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="slope" , outcome="crop_damage" )
+```
+
+For slope the canonical model `m_slope_can` includes:
+```{r}
+adjustmentSets( crop_damage_dag , exposure="slope" , outcome="crop_damage" , type="canonical")
+```
+
+Note that c2070 and c70 have the same canonical model. Moths planted and farm size have the same canonical model. We cannot estimate the effectivenes of the number of protection strategies on crop damae given our curent data. We need  time series.
