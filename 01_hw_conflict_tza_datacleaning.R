@@ -127,9 +127,11 @@ myvars3 <- c( "village" , "hyena_l" , "lion_l", "fid" , "settle_dist" , "c70" , 
 # cattle sheep goat donkey SUM of them
 
 dl <- d[myvars3]
-dl <- dl[dl$livestock==1,]
+dl <- dl[dl$livestock==1,] #only look at folks with livestock
 dl <- dl[dl$species=="lion",]
-dl <- dl[complete.cases(dl), ]
+dl$guard_ave_day[is.na(dl$guard_ave_day)] <- 0 #replaced NA with zeros, we hAVE INFO THAT THERE WAS GUARDS IN dl$guard_ave_day
+##we can also look at tj
+dl <- dl[complete.cases(dl), ] #good to manually check most like
 
 dL <- dl
 dL$conflict <- dL$lion_l
