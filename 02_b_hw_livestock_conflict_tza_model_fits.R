@@ -131,10 +131,10 @@ ml_sd_min <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] +  
-      (b_dSD + b_dSDs[species_index])*settle_dist_km_std ,
-    c(a,b_dSD) ~ normal( 0 , 1 ),
+      (b_SD + b_SDs[species_index])*settle_dist_km_std ,
+    c(a,b_SD) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(0,sigma_v),
-    c(as,b_dSDs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(as,b_SDs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
@@ -242,7 +242,7 @@ ml_lshXguard_min  <- map2stan(
     c(as,b_LSHs,b_HHs,b_GUs,b_GUxLSHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dl , chains=4 , cores=4 , iter=4000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
+  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
 
 precis(ml_lshXguard_min , depth=2)
 
