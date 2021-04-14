@@ -117,7 +117,7 @@ for (i in 1:3){
     crop_std=rep(0,30),
     c2070_std = plot_seq ,
     build_dens_std= rep(0,30),
-    slope_std= rep(0,30),
+    gse_slope30m_std= rep(0,30),
     species_index=rep(i,30)
   )
   
@@ -155,7 +155,7 @@ for (i in 1:3){
   dpred <- list(
     village_index=rep(1,30),
     settle_dist_km_std=rep(0,30),
-    slope_std = rep(0,30),
+    gse_slope30m_std = rep(0,30),
     crop_std= plot_seq,
     species_index=rep(i,30)
   )
@@ -237,7 +237,7 @@ for (i in 1:3){
   
   dpred <- list(
     village_index=rep(1,30),
-    slope_std = rep(0,30) ,
+    gse_slope30m_std = rep(0,30) ,
     river_std= plot_seq,
     species_index=rep(i,30)
   )
@@ -273,7 +273,7 @@ for (i in 1:3){
     village_index=rep(1,30),
     settle_dist_km_std=rep(0,30),
     build_dens_std= plot_seq ,
-    slope_std= rep(0,30),
+    gse_slope30m_std= rep(0,30),
     species_index=rep(i,30)
   )
   
@@ -445,13 +445,13 @@ for (i in 1:3){
 }
 
 # slope
-plot_seq <- seq(from=min(dc$slope_std) , to=max(dc$slope_std) , length=30)
+plot_seq <- seq(from=min(dc$gse_slope30m_std) , to=max(dc$gse_slope30m_std) , length=30)
 
 for (i in 1:3){
   
   dpred <- list(
     village_index=rep(1,30),
-    slope_std=plot_seq,
+    gse_slope30m_std=plot_seq,
     species_index=rep(i,30)
   )
   
@@ -460,17 +460,17 @@ for (i in 1:3){
   if(i==1){
     pdf(file = "plots/slope_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$slope_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density" ,  xaxt='n' , cex.lab=1.3)}
+    plot(dc$baboon_c ~ dc$gse_slope30m_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density" ,  xaxt='n' , cex.lab=1.3)}
   
   if(i==2){
     pdf(file = "plots/slope_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$slope_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density",  xaxt='n' , cex.lab=1.3)}
+    plot(dc$elephant_c ~ dc$gse_slope30m_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density",  xaxt='n' , cex.lab=1.3)}
   
   if(i==3){
     pdf(file = "plots/slope_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$vervet_c ~ dc$slope_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density",  xaxt='n' , cex.lab=1.3)}
+    plot(dc$vervet_c ~ dc$gse_slope30m_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density",  xaxt='n' , cex.lab=1.3)}
   
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
@@ -497,7 +497,7 @@ ras_bab$river_std <- (ras_bab$river -mean(dc$river ) )/ sd(dc$river)
 ras_bab$road_std <- (ras_bab$road -mean(dc$road ) )/ sd(dc$road) 
 ras_bab$build_dens_std <- (ras_bab$build_dens-mean(dc$build_dens ) )/ sd(dc$build_dens) 
 ras_bab$settle_dist_km_std <- (ras_bab$settle_dist_km-mean(dc$settle_dist_km ) )/ sd(dc$settle_dist_km)
-ras_bab$slope_std <- (ras_bab$gse_slope30m-mean(dc$gse_slope30m ) )/ sd(dc$gse_slope30m) 
+ras_bab$gse_slope30m_std <- (ras_bab$gse_slope30m-mean(dc$gse_slope30m ) )/ sd(dc$gse_slope30m) 
 ras_bab$species_index <- 1
 
 p <- extract.samples(mc_landscape)
@@ -511,7 +511,7 @@ dpred <- list(
   road_std= ras_bab$road_std,
   build_dens_std=ras_bab$build_dens_std,
   crop_std= ras_bab$crop_std,
-  slope_std= ras_bab$slope_std,
+  gse_slope30m_std= ras_bab$gse_slope30m_std,
   species_index=ras_bab$species_index
 )
 
@@ -524,7 +524,7 @@ ras_bab$pred_bab_crop_conflict <- logistic( mean(p$a + p$as[,1]) +
                                               mean(p$b_RD + p$b_RDs[,1])*dpred$road_std  + 
                                               mean(p$b_RIV + p$b_RIVs[,1])*dpred$river_std  + 
                                               mean(p$b_CR + p$b_CRs[,1])*dpred$crop_std  + 
-                                              mean(p$b_SL + p$b_SLs[,1])*dpred$slope_std 
+                                              mean(p$b_SL + p$b_SLs[,1])*dpred$gse_slope30m_std 
 )
 
 dens(ras_bab$pred_bab_crop_conflict)
@@ -544,7 +544,7 @@ ras_ele$river_std <- (ras_ele$river -mean(dc$river ) )/ sd(dc$river)
 ras_ele$road_std <- (ras_ele$road -mean(dc$road ) )/ sd(dc$road) 
 ras_ele$build_dens_std <- (ras_ele$build_dens-mean(dc$build_dens ) )/ sd(dc$build_dens) 
 ras_ele$settle_dist_km_std <- (ras_ele$settle_dist_km-mean(dc$settle_dist_km ) )/ sd(dc$settle_dist_km)
-ras_ele$slope_std <- (ras_ele$gse_slope30m-mean(dc$gse_slope30m ) )/ sd(dc$gse_slope30m) 
+ras_ele$gse_slope30m_std <- (ras_ele$gse_slope30m-mean(dc$gse_slope30m ) )/ sd(dc$gse_slope30m) 
 ras_ele$species_index <- 2
 
 p <- extract.samples(mc_landscape)
@@ -558,7 +558,7 @@ dpred <- list(
   road_std= ras_ele$road_std,
   build_dens_std=ras_ele$build_dens_std,
   crop_std= ras_ele$crop_std,
-  slope_std= ras_ele$slope_std,
+  gse_slope30m_std= ras_ele$gse_slope30m_std,
   species_index=ras_ele$species_index
 )
 
@@ -570,7 +570,7 @@ ras_ele$pred_ele_crop_conflict <- logistic( mean(p$a + p$as[,2]) +
                                               mean(p$b_RD + p$b_RDs[,2])*dpred$road_std  + 
                                               mean(p$b_RIV + p$b_RIVs[,2])*dpred$river_std  + 
                                               mean(p$b_CR + p$b_CRs[,2])*dpred$crop_std  + 
-                                              mean(p$b_SL + p$b_SLs[,2])*dpred$slope_std 
+                                              mean(p$b_SL + p$b_SLs[,2])*dpred$gse_slope30m_std 
 )
   
 
@@ -590,7 +590,7 @@ ras_ver$river_std <- (ras_ver$river -mean(dc$river ) )/ sd(dc$river)
 ras_ver$road_std <- (ras_ver$road -mean(dc$road ) )/ sd(dc$road) 
 ras_ver$build_dens_std <- (ras_ver$build_dens-mean(dc$build_dens ) )/ sd(dc$build_dens) 
 ras_ver$settle_dist_km_std <- (ras_ver$settle_dist_km-mean(dc$settle_dist_km ) )/ sd(dc$settle_dist_km) 
-ras_ver$slope_std <- (ras_ver$gse_slope30m-mean(dc$gse_slope30m ) )/ sd(dc$gse_slope30m) 
+ras_ver$gse_slope30m_std <- (ras_ver$gse_slope30m-mean(dc$gse_slope30m ) )/ sd(dc$gse_slope30m) 
 ras_ver$species_index <- 3
 
 p <- extract.samples(mc_landscape)
@@ -604,7 +604,7 @@ dpred <- list(
   road_std= ras_ver$road_std,
   build_dens_std=ras_ver$build_dens_std,
   crop_std= ras_ver$crop_std,
-  slope_std=ras_ver$slope_std,
+  gse_slope30m_std=ras_ver$gse_slope30m_std,
   species_index=ras_ver$species_index
 )
 

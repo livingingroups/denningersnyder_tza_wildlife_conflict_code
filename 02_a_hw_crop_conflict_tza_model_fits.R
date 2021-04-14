@@ -44,7 +44,7 @@ mc_c2070_min <- map2stan(
         (b_C2070 + b_C2070s[species_index])*c2070_std +
         (b_BD + b_BDs[species_index])*build_dens_std +
         (b_CR + b_CRs[species_index])*crop_std +
-        (b_SL + b_SLs[species_index])*slope_std,
+        (b_SL + b_SLs[species_index])*gse_slope30m_std,
 
       c(a,b_C2070,b_CR,b_BD,b_SL) ~ normal( 0 , 1 ),
       av[village_index] ~ dnorm(0,sigma_v),
@@ -84,7 +84,7 @@ mc_cd_min <- map2stan(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] + 
       (b_CR + b_CRs[species_index])*crop_std +
-      (b_SL + b_SLs[species_index])*slope_std,
+      (b_SL + b_SLs[species_index])*gse_slope30m_std,
     
     c(a,b_CR,b_SL) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(0,sigma_v),
@@ -105,7 +105,7 @@ mc_riv_min <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] + 
-      (b_SL + b_SLs[species_index])*slope_std +
+      (b_SL + b_SLs[species_index])*gse_slope30m_std +
       (b_RIV + b_RIVs[species_index])*river_std,
     
     c(a,b_SL,b_RIV) ~ normal( 0 , 1 ),
@@ -146,7 +146,7 @@ mc_bd_min <- map2stan(
     logit(p) <- a + av[village_index] + as[species_index] + 
       (b_BD + b_BDs[species_index])*build_dens_std +
       (b_SD + b_SDs[species_index])*settle_dist_km_std +
-      (b_SL + b_SLs[species_index])*slope_std,
+      (b_SL + b_SLs[species_index])*gse_slope30m_std,
     
     c(a,b_SD,b_BD,b_SL) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(0,sigma_v),
@@ -235,7 +235,7 @@ mc_slope_min <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] + 
-      (b_SL + b_SLs[species_index])*slope_std,
+      (b_SL + b_SLs[species_index])*gse_slope30m_std,
 
     c(a,b_SL) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(0,sigma_v),
@@ -258,7 +258,7 @@ mc_landscape <- map2stan(
       + (b_RIV + b_RIVs[species_index])*river_std  
       + (b_RD + b_RDs[species_index])*road_std 
       + (b_BD + b_BDs[species_index])*build_dens_std 
-      + (b_SL + b_SLs[species_index])*slope_std 
+      + (b_SL + b_SLs[species_index])*gse_slope30m_std 
       + (b_CR + b_CRs[species_index])*crop_std,
       c(a,b_SD,b_C70,b_C2070,b_RIV,b_RD,b_BD,b_CR,b_SL) ~ normal( 0 , 1 ),
       av[village_index] ~ dnorm(0,sigma_v),

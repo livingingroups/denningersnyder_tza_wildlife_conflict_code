@@ -81,7 +81,12 @@ d[d == "-2147483648"] <- "NA"
 
 #fthese are all the variables we are interested in 
 
-myvars2 <- c("conflict" , "village", "elephant_c", "baboon_c" ,"vervet_c",  "farm_size" , "household_size" , "fid" , "settle_dist" , "see_field" , "c70" , "c2070" ,"river" , "road" , "crop" ,"build_dens" , "farm"  , "months_planted"  , "crop_prot_music" , "crop_prot_w_fence" , "crop_prot_sisal" , "crop_prot_shout" , "crop_prot_fire" , "crop_prot_chase" , "crop_prot_guard" , "species" , "num_crop_prot_strats" )
+myvars2 <- c("conflict" , "village", "elephant_c", "baboon_c" ,"vervet_c", 
+             "farm_size" , "household_size" , "fid" , "settle_dist" , "gse_slope30m",
+             "see_field" , "c70" , "c2070" ,"river" , "road" , "crop" ,"build_dens" , 
+             "farm"  , "months_planted"  , "crop_prot_music" , "crop_prot_w_fence" , 
+             "crop_prot_sisal" , "crop_prot_shout" , "crop_prot_fire" , "crop_prot_chase" ,
+             "crop_prot_guard" , "species" , "num_crop_prot_strats" )
 
 dc <- d[myvars2]
 
@@ -93,7 +98,11 @@ dc <- dc[dc$farm==1,] #only look at conflicts with households that have farms
 
 nrow(dc) #now 1239
 str(dc)
+nrow(dc)
+table(dc$household_size , useNA="always")
+
 dc <- dc[complete.cases(dc), ] ##we will impute later but we lose 34 observations
+nrow(dc)
 dc <- droplevels(dc)
 dc$crop_std <- (dc$crop-mean(dc$crop) )/sd(dc$crop)
 dc$settle_dist_km <- dc$settle_dist/1000
@@ -111,6 +120,8 @@ dc$household_size_std <- (dc$household_size-mean(dc$household_size) )/sd(dc$hous
 dc$road_std <- (dc$road-mean(dc$road) )/sd(dc$road) 
 dc$months_planted_std <- (dc$months_planted-mean(dc$months_planted) )/sd(dc$months_planted) 
 dc$num_crop_prot_strats_std <- (dc$num_crop_prot_strats-mean(dc$num_crop_prot_strats) )/sd(dc$num_crop_prot_strats) 
+dc$gse_slope30m_std <- (dc$gse_slope30m-mean(dc$gse_slope30m) )/sd(dc$gse_slope30m) 
+gse_slope30m
 nrow(dc)
 
 dc$species_index <- as.integer(as.factor(dc$species))
@@ -131,7 +142,9 @@ dl <- dl[dl$livestock==1,] #only look at folks with livestock
 dl <- dl[dl$species=="lion",]
 dl$guard_ave_day[is.na(dl$guard_ave_day)] <- 0 #replaced NA with zeros, we hAVE INFO THAT THERE WAS GUARDS IN dl$guard_ave_day
 ##we can also look at tj
+nrow(dl)
 dl <- dl[complete.cases(dl), ] #good to manually check most like
+nrow(dl) #we lose the same 31 household sizes
 
 dL <- dl
 dL$conflict <- dL$lion_l
