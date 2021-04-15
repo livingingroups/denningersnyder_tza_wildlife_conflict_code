@@ -62,8 +62,11 @@ dev.off()
 ####lets plot per species effects from minimal models
 av_z <- matrix(0,1000,length(unique(dc$village_index))) #need to add zeros in VE to plot main effect
 ylabels=c("probability baboon crop conflict" , "probability elephant crop conflict","probability vervet crop conflict")
-colpal=c("blue" , "grey", "green")
+colpal=c("blue" , "grey", "darkgreen")
+
 #c70
+precis(mc_c70_min)
+
 plot_seq <- seq(from=min(dc$c70_std) , to=max(dc$c70_std) , length=30)
 
 for (i in 1:3){
@@ -79,17 +82,17 @@ for (i in 1:3){
   
   link2 <- link(mc_c70_min, data=dpred , replace=list(village_index=av_z) )
   if(i==1){
-    pdf(file = "plots/c70_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/c70_crop_min_conflict_bab.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$c70_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" , xaxt='n' , cex.lab=1.3)
     }
   if(i==2){
-    pdf(file = "plots/c70_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/c70_crop_min_conflict_ele.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" ,  xaxt='n' , cex.lab=1.3)
     }
   if(i==3){
-    pdf(file = "plots/c70_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+   pdf(file = "plots/c70_crop_min_conflict_ver.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$c70_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" ,  xaxt='n' , cex.lab=1.3)
     }
@@ -102,7 +105,7 @@ for (i in 1:3){
   }
   
   axis( 1 , at= ( seq(from=0 , to=0.25 , by=0.05) - mean(dc$c70))/sd(dc$c70) , labels= seq(from=0 , to=0.25 , by=0.05) )
-  dev.off()
+ dev.off()
 }
 
 
