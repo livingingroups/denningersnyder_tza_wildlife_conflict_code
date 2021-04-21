@@ -101,7 +101,7 @@ str(dc)
 nrow(dc)
 table(dc$household_size , useNA="always")
 
-dc <- dc[complete.cases(dc), ] ##we will impute later but we lose 34 observations
+#dc <- dc[complete.cases(dc), ] ##we will impute later but we lose 34 observations
 nrow(dc)
 dc <- droplevels(dc)
 dc$crop_std <- (dc$crop-mean(dc$crop) )/sd(dc$crop)
@@ -116,7 +116,7 @@ dc$village_index <- as.integer(as.factor(dc$village))
 dc$river_std <- (dc$river-mean(dc$river) )/sd(dc$river) #
 dc$crop_std <- (dc$crop-mean(dc$crop) )/sd(dc$crop) 
 dc$build_dens_std <- (dc$build_dens-mean(dc$build_dens) )/sd(dc$build_dens) ##nonlinear
-dc$household_size_std <- (dc$household_size-mean(dc$household_size) )/sd(dc$household_size)
+dc$household_size_std <- (dc$household_size-mean(dc$household_size,na.rm = TRUE) )/sd(dc$household_size,na.rm = TRUE) #for imputation
 dc$road_std <- (dc$road-mean(dc$road) )/sd(dc$road) 
 dc$months_planted_std <- (dc$months_planted-mean(dc$months_planted) )/sd(dc$months_planted) 
 dc$num_crop_prot_strats_std <- (dc$num_crop_prot_strats-mean(dc$num_crop_prot_strats) )/sd(dc$num_crop_prot_strats) 
@@ -143,7 +143,7 @@ dl <- dl[dl$species=="lion",]
 dl$guard_ave_day[is.na(dl$guard_ave_day)] <- 0 #replaced NA with zeros, we hAVE INFO THAT THERE WAS GUARDS IN dl$guard_ave_day
 ##we can also look at tj
 nrow(dl)
-dl <- dl[complete.cases(dl), ] #good to manually check most like
+#dl <- dl[complete.cases(dl), ] #good to manually check most like
 nrow(dl) #we lose the same 31 household sizes
 
 dL <- dl
@@ -170,7 +170,7 @@ dl$crop_std <- (dl$crop-mean(dl$crop) )/sd(dl$crop)
 dl$gse_slope30m_std <- (dl$gse_slope30m-mean(dl$gse_slope30m) )/sd(dl$gse_slope30m)
 dl$build_dens_std <- (dl$build_dens-mean(dl$build_dens) )/sd(dl$build_dens)
 dl$guard_ave_day_std <- (dl$guard_ave_day-mean(dl$guard_ave_day) )/sd(dl$guard_ave_day) 
-dl$household_size_std <- (dl$household_size-mean(dl$household_size) )/sd(dl$household_size)
+dl$household_size_std <- (dl$household_size-mean(dl$household_size,na.rm = TRUE) )/sd(dl$household_size,na.rm = TRUE) #for imputation
 dl$log_livestock_head <- log(dl$livestock_head + 1)
 dl$log_livestock_head_std <- (dl$log_livestock_head-mean(dl$log_livestock_head) )/sd(dl$log_livestock_head)
 dl$livestock_head_std <- (dl$livestock_head-mean(dl$livestock_head) )/sd(dl$livestock_head)

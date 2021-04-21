@@ -352,7 +352,7 @@ pdf(file = "plots/seefield_crop_min_conflict_bab.pdf",   width = 6, height = 6)
   dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
   abline(v=mean(link2[,1]) , col="blue" , lty=2)
   dens(link2[,2] , add=TRUE , col="darkblue")
-  abline(v=mean(link2[,2]) , col="darkblue" , lty=1)
+  abline(v=median(link2[,2]) , col="darkblue" , lty=1)
   legend('topright' , c("can't see field" , "see field") , col=c("blue" , "darkblue") , lty=c(2,1))
 dev.off()
 
@@ -360,7 +360,7 @@ pdf(file = "plots/seefield_crop_min_conflict_ele.pdf",   width = 6, height = 6)
   dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
   abline(v=mean(link2[,3]) , col="grey" , lty=2)
   dens(link2[,4] , add=TRUE , col="black" )
-  abline(v=mean(link2[,4]) , col="black" , lty=1)
+  abline(v=median(link2[,4]) , col="black" , lty=1)
 legend('topleft' , c("can't see field" , "see field") , col=c("grey" , "black") , lty=c(2,1))
 dev.off()
 
@@ -368,19 +368,21 @@ pdf(file = "plots/seefield_crop_min_conflict_verv.pdf",   width = 6, height = 6)
   dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
   abline(v=mean(link2[,5]) , col="green" , lty=2)
   dens(link2[,6] , add=TRUE , col="darkgreen" )
-  abline(v=mean(link2[,6]) , col="darkgreen" , lty=1)
+  abline(v=median(link2[,6]) , col="darkgreen" , lty=1)
   legend('topleft' , c("can't see field" , "see field") , col=c("green" , "darkgreen") , lty=c(2,1))
 dev.off()
 
 ###household size
-plot_seq <- seq(from=min(dc$household_size_std) , to=max(dc$household_size_std) , length=30)
+post <- extract.samples(mc_hh_min)
+plot_seq <- seq(from=min(dc$household_size_std ,  na.rm = TRUE) , to=max(dc$household_size_std, na.rm = TRUE) , length=18)
+hhsimp <- apply(post$household_size_std_impute , 2 , mean) #look at imputed values
 
 for (i in 1:3){
   
   dpred <- list(
-    village_index=rep(1,30),
+    village_index=rep(1,18),
     household_size_std=plot_seq,
-    species_index=rep(i,30)
+    species_index=rep(i,18)
   )
   
   link2 <- link(mc_hh_min, data=dpred , replace=list(village_index=av_z) )
@@ -389,25 +391,123 @@ for (i in 1:3){
     pdf(file = "plots/hhsize_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$household_size_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
+    points(hhsimp , dc$baboon_c[is.na(dc$household_size_std)==TRUE], pch=1)
   
   if(i==2){
     pdf(file = "plots/hhsize_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$household_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
-  
+    points(hhsimp , dc$ele_c[is.na(dc$household_size_std)==TRUE], pch=1)
+    
   if(i==3){
     pdf(file = "plots/hhsize_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$household_size_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
-  
+    points(hhsimp , dc$vervet_c[is.na(dc$household_size_std)==TRUE], pch=1)
+    
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=0 , to=30 , by=5) - mean(dc$household_size))/sd(dc$household_size) , labels= seq(from=0 , to=30 , by=5) )
+  axis( 1 , at= ( seq(from=0 , to=30 , by=5) - mean(dc$household_size ,  na.rm = TRUE))/sd(dc$household_size ,  na.rm =TRUE) , labels= seq(from=0 , to=30 , by=5) )
   dev.off()
 }
+
+###household size trial bug fixin
+
+#extract posterior
+# post <- extract.samples(mc_hh_min)
+# 
+# tracerplot(mc_hh_min , pars=c("b_HH"))
+# tracerplot(mc_hh_min , pars=c("b_HHs"))
+# 
+# hhsimp <- apply(post$household_size_std_impute , 2 , mean) #look at imputed values
+# 
+# plot_seq <- seq(from=min(dc$household_size_std ,  na.rm = TRUE) , to=max(dc$household_size_std, na.rm = TRUE) , length=30)
+# 
+# for (i in 1:3){
+#   
+#   dpred <- list(
+#     village_index=rep(1,30),
+#     household_size_std=plot_seq,
+#     species_index=rep(i,30)
+#   )
+#   
+#   link2 <- link(mc_hh_min, data=dpred , replace=list(village_index=av_z) )
+#   mu.link <- function(household_size_std) logistic(post$a + post$as[,i] + (post$b_HH + post$b_HHs[,i])*household_size_std)
+#   
+#   if(i==1){
+#     par( mar=c(4,4,1,1)+.1 )
+#     pdf(file = "plots/hhsize_crop_min_conflict_bab2.pdf",   width = 6, height = 6) 
+#     plot(dc$baboon_c ~ dc$household_size_std, col=col.alpha(colpal[i], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
+#     points(hhsimp , dc$baboon_c[is.na(dc$household_size_std)==TRUE], pch=1)
+#   
+#   if(i==2){
+#     par( mar=c(4,4,1,1)+.1 )
+#     pdf(file = "plots/hhsize_crop_min_conflict_ele2.pdf",   width = 6, height = 6) 
+#     plot(dc$elephant_c ~ dc$household_size_std , col=col.alpha(colpal[i], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
+#     points(hhsimp , dc$elephant_c[is.na(dc$household_size_std)==TRUE], pch=1)
+#     
+#   if(i==3){
+#     par( mar=c(4,4,1,1)+.1 )
+#     pdf(file = "plots/hhsize_crop_min_conflict_verv2.pdf",   width = 6, height = 6) 
+#     plot(dc$vervet_c ~ dc$household_size_std , col=col.alpha(colpal[i], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
+#     points(hhsimp , dc$vervet_c[is.na(dc$household_size_std)==TRUE], pch=1)
+#     
+#   mu <- sapply( plot_seq  , mu.link )
+#   mu.mean <- apply( mu , 2 , mean)
+#   
+#   pred_mean <- apply(link2 , 2 , mean)
+#   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=2)
+#   lines( mu.mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+#   
+#   # for (j in sample( c(1:1000) , 100) ){
+#   #   lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+#   # }
+#   
+#   for (j in sample( c(1:1000) , 100) ){
+#     lines( mu[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+#   }
+#   
+#   axis( 1 , at= ( seq(from=0 , to=30 , by=5) - mean(dc$household_size ,  na.rm = TRUE))/sd(dc$household_size ,  na.rm =TRUE) , labels= seq(from=0 , to=30 , by=5) )
+#  dev.off()
+# }
+
+#########diagnosis attempts
+
+for (i in 1:3){
+  n_sim <- 18
+  plot_seq <- seq(from=min(dc$household_size_std ,  na.rm = TRUE) , to=max(dc$household_size_std, na.rm = TRUE) , length=n_sim)
+  
+  dpred <- list(
+    village_index=rep(1,n_sim),
+    household_size_std=plot_seq,
+    species_index=rep(i,n_sim)
+  )
+  
+  link2 <- link(mc_hh_min, data=dpred , replace=list(village_index=av_z) )
+  mu.link <- function(household_size_std) logistic(post$a + post$as[,i] + (post$b_HH + post$b_HHs[,i])*household_size_std)
+  
+if(i==1){
+  par( mar=c(4,4,1,1)+.1 )
+  plot(dc$baboon_c ~ dc$household_size_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size std",   cex.lab=1.3)}
+
+if(i==2){
+  par( mar=c(4,4,1,1)+.1 )
+  plot(dc$elephant_c ~ dc$household_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size std", cex.lab=1.3)}
+
+if(i==3){
+  par( mar=c(4,4,1,1)+.1 )
+  plot(dc$vervet_c ~ dc$household_size_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size", cex.lab=1.3)}
+
+pred_mean <- apply(link2 , 2 , mean)
+lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+}
+
 
 ## farm size
 plot_seq <- seq(from=min(dc$farm_size_std) , to=max(dc$farm_size_std) , length=30)
@@ -446,6 +546,7 @@ for (i in 1:3){
   axis( 1 , at= ( seq(from=0 , to=30 , by=5) - mean(dc$farm_size))/sd(dc$farm_size) , labels= seq(from=0 , to=30 , by=5) )
   dev.off()
 }
+
 
 # slope
 plot_seq <- seq(from=min(dc$gse_slope30m_std) , to=max(dc$gse_slope30m_std) , length=30)

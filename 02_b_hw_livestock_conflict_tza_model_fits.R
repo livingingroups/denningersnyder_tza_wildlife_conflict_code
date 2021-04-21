@@ -220,10 +220,11 @@ ml_guard_min <- map2stan(
       (b_LSH + b_LSHs[species_index])*log_livestock_head_std + 
       (b_HH + b_HHs[species_index])*household_size_std + 
       (b_GU + b_GUs[species_index])*guard_ave_day_std, 
-    c(a,b_LSH,b_HH,b_GU) ~ normal( 0 , 1 ),
+    household_size_std ~ normal( mu_x , sigma_x ),
+    c(a,b_LSH,b_HH,b_GU,mu_x) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_LSHs,b_HHs,b_GUs)[species_index] ~ dmvnormNC(sigma_s,Rho),
-    c(sigma_v,sigma_s) ~ dexp(1),
+    c(sigma_v,sigma_s,sigma_x) ~ dexp(1),
     Rho ~ dlkjcorr(3)
   ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99))
 
@@ -237,10 +238,12 @@ ml_lshXguard_min  <- map2stan(
       (b_LSH + b_LSHs[species_index])*log_livestock_head_std + 
       (b_HH + b_HHs[species_index])*household_size_std + 
       (b_GU + b_GUs[species_index] + (b_GUxLSH + b_GUxLSHs[species_index])*log_livestock_head_std)*guard_ave_day_std ,
-    c(a,b_LSH,b_HH,b_GU ,b_GUxLSH) ~ normal( 0 , 1 ),
+    household_size_std ~ normal( mu_x , sigma_x ),
+    
+    c(a,b_LSH,b_HH,b_GU,b_GUxLSH,mu_x) ~ normal( 0 , 1 ),
     av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_LSHs,b_HHs,b_GUs,b_GUxLSHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
-    c(sigma_v,sigma_s) ~ dexp(1),
+    c(sigma_v,sigma_s,sigma_x) ~ dexp(1),
     Rho ~ dlkjcorr(3)
   ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
 

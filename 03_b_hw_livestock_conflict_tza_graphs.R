@@ -282,16 +282,17 @@ for (i in 1:2){
 ###guards
 precis(ml_guard_min)
 
-plot_seq <- seq(from=min(dl$guard_ave_day_std) , to=max(dl$guard_ave_day_std) , length=30)
+plength <- 15
+plot_seq <- seq(from=min(dl$guard_ave_day_std) , to=max(dl$guard_ave_day_std) , length=plength )
 
 for (i in 1:2){
   
   dpred <- list(
-    village_index=rep(1,30),
+    village_index=rep(1,plength ),
     guard_ave_day_std=plot_seq,
-    household_size_std=rep(0,30),
-    log_livestock_head_std=rep(0,30),
-    species_index=rep(i,30)
+    household_size_std=rep(0,plength ),
+    log_livestock_head_std=rep(0,plength ),
+    species_index=rep(i,plength )
   )
   
   link2 <- link(ml_guard_min, data=dpred , replace=list(village_index=av_z) )
@@ -318,49 +319,65 @@ colpal1=brewer.pal(7,"Reds")
 colpal2=brewer.pal(7,"Oranges")
 colpal1=colpal1[3:7]
 colpal2=colpal2[3:7]
-plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=30)
+plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=plength)
 
-for (i in 1:2){
-  par(mfrow=c(1,5))
-  par( mar=c(4,4,1,1)+.1 )
-  for(j in 1:5){
-    
-    dpred <- list(
-      village_index=rep(1,30),
-      log_livestock_head_std=plot_seq,
-      species_index=rep(i,30),
-      household_size_std=rep(0,30), 
-      guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , 30)
-    )
-    
-    link2 <- link(ml_lshXguard_min, data=dpred , replace=list(village_index=av_z) )
-    
-    if(i==1){
-      plot(dl$hyena_l[dl$guard_ave_day==j-1] ~ dl$log_livestock_head_std[dl$guard_ave_day==j-1], col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log number livestock head", xaxt='n', cex.lab=1.3 , xlim=range(dl$log_livestock_head_std) , ylim=c(0,1))
-      title(main=paste("number guards = ", j-1) )
-      pred_mean <- apply(link2 , 2 , mean)
-      lines(pred_mean ~ plot_seq , lw=2, col=colpal1[j] , lty=1)
-      for (k in sample( c(1:1000) , 100) ){
-        lines( link2[k,] ~ plot_seq , lw=3, col=col.alpha(colpal1[j], alpha=0.1) , lty=1)
-      }
-      axis( 1 , at= ( seq(from=1 , to=7 , by=1) - mean(dl$log_livestock_head))/sd(dl$log_livestock_head) , labels= seq(from=1 , to=7 , by=1 ))
-      
+pdf(file = "plots/num_guardsXlsh_livestock_min_conflict_hyena.pdf",   width = 15, height = 3)
+par(mfrow=c(1,5))
+par( mar=c(4,4,1,1)+.1 )
+
+for(j in 1:5){
+  i <- 1
+  dpred <- list(
+    village_index=rep(1,plength),
+    log_livestock_head_std=plot_seq,
+    species_index=rep(i,plength),
+    household_size_std=rep(0,plength), 
+    guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , plength)
+  )
+  
+  link2 <- link(ml_lshXguard_min, data=dpred , replace=list(village_index=av_z) )
+  
+    plot(dl$hyena_l[dl$guard_ave_day==j-1] ~ dl$log_livestock_head_std[dl$guard_ave_day==j-1], col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log number livestock head", xaxt='n', cex.lab=1.3 , xlim=range(dl$log_livestock_head_std) , ylim=c(0,1))
+    title(main=paste("number guards = ", j-1) )
+    pred_mean <- apply(link2 , 2 , mean)
+    lines(pred_mean ~ plot_seq , lw=2, col=colpal1[j] , lty=1)
+    for (k in sample( c(1:1000) , 100) ){
+      lines( link2[k,] ~ plot_seq , lw=3, col=col.alpha(colpal1[j], alpha=0.1) , lty=1)
     }
-    #[dl$guard_ave_day==j-1]
-    if(i==2){
-      plot(dl$lion_l[dl$guard_ave_day==j-1] ~ dl$log_livestock_head_std[dl$guard_ave_day==j-1] , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log number livestock head", xaxt='n', cex.lab=1.3 , xlim=range(dl$log_livestock_head_std), ylim=c(0,1))
-      title(main=paste("number guards = ", j-1) )
-      pred_mean <- apply(link2 , 2 , mean)
-      lines(pred_mean ~ plot_seq , lw=2, col=colpal2[j] , lty=1)
-      for (k in sample( c(1:1000) , 100) ){
-        lines( link2[k,] ~ plot_seq , lw=3, col=col.alpha(colpal2[j], alpha=0.1) , lty=1)
-      }
-      axis( 1 , at= ( seq(from=1 , to=7 , by=1) - mean(dl$log_livestock_head))/sd(dl$log_livestock_head) , labels= seq(from=1 , to=7 , by=1 ))
-      
+    axis( 1 , at= ( seq(from=1 , to=7 , by=1) - mean(dl$log_livestock_head))/sd(dl$log_livestock_head) , labels= seq(from=1 , to=7 , by=1 ))
+}
+dev.off()
+
+pdf(file = "plots/num_guardsXlsh_livestock_min_conflict_lion.pdf",   width = 15, height = 3)
+par(mfrow=c(1,5))
+par( mar=c(4,4,1,1)+.1 )
+
+for(j in 1:5){
+  i <- 2
+  dpred <- list(
+    village_index=rep(1,plength),
+    log_livestock_head_std=plot_seq,
+    species_index=rep(i,plength),
+    household_size_std=rep(0,plength), 
+    guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , plength)
+  )
+  
+  link2 <- link(ml_lshXguard_min, data=dpred , replace=list(village_index=av_z) )
+  
+    plot(dl$lion_l[dl$guard_ave_day==j-1] ~ dl$log_livestock_head_std[dl$guard_ave_day==j-1] , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log number livestock head", xaxt='n', cex.lab=1.1 , xlim=range(dl$log_livestock_head_std), ylim=c(0,1))
+    title(main=paste("number guards = ", j-1) )
+    pred_mean <- apply(link2 , 2 , mean)
+    lines(pred_mean ~ plot_seq , lw=2, col=colpal2[j] , lty=1)
+    for (k in sample( c(1:1000) , 100) ){
+      lines( link2[k,] ~ plot_seq , lw=3, col=col.alpha(colpal2[j], alpha=0.1) , lty=1)
     }
+    axis( 1 , at= ( seq(from=1 , to=7 , by=1) - mean(dl$log_livestock_head))/sd(dl$log_livestock_head) , labels= seq(from=1 , to=7 , by=1 ))
     
   }
-}
+    
+  
+  dev.off()
+#}
 
 ##############other graphs of imporatnce#####
 # 

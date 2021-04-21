@@ -194,7 +194,7 @@ mc_see_min <- map2stan(
 
 precis(mc_see_min, depth=2)
 
-###household size
+###household size imputed
 adjustmentSets( crop_damage_dag , exposure="hh_size" , outcome="crop_damage" )
 
 mc_hh_min <- map2stan(
@@ -202,10 +202,12 @@ mc_hh_min <- map2stan(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] 
     + (b_HH + b_HHs[species_index])*household_size_std,
-    c(a,b_HH) ~ normal( 0 , 1 ),
+    household_size_std ~ dnorm( mu_x, sigma_x ),
+    c(a,b_HH) ~ dnorm( 0 , 1 ),
+    mu_x ~ dnorm( 0 , 3 ),
     av[village_index] ~ dnorm(0,sigma_v),
     c(as,b_HHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
-    c(sigma_v,sigma_s) ~ dexp(1),
+    c(sigma_v,sigma_s,sigma_x) ~ dexp(1),
     Rho ~ dlkjcorr(3)
   ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
 
@@ -244,6 +246,7 @@ mc_slope_min <- map2stan(
     Rho ~ dlkjcorr(3)
     
   ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.95))
+
 
 precis(mc_slope_min , depth=2)
 
