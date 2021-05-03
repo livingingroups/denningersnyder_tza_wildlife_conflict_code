@@ -590,8 +590,8 @@ for (i in 1:3){
 #########################################
 
 ###############baboons
-ras_bab<-  read.csv("~/Dropbox/tza_wildlife_conflict/baboonRasterstacktopoints_survext.csv")
-#ras_bab<-  read.csv("baboonRasterstacktopoints_survext.csv")
+#ras_bab<-  read.csv("~/Dropbox/tza_wildlife_conflict/baboonRasterstacktopoints_survext.csv")
+ras_bab<-  read.csv("baboonRasterstacktopoints_survext.csv")
 
 ras_bab$settle_dist_km <- ras_bab$settle_dist/1000
 ras_bab$crop_std <- (ras_bab$crop-mean(dc$crop) )/sd(dc$crop) 
@@ -633,12 +633,13 @@ ras_bab$pred_bab_crop_conflict <- logistic( mean(p$a + p$as[,1]) +
 
 dens(ras_bab$pred_bab_crop_conflict)
 ras_bab_sub <- cbind( ras_bab[1:3] , ras_bab$pred_bab_crop_conflict)
-write.csv(ras_bab_sub , file="raster_data_for_preds/ras_baboon_crop_predsv.csv")
+write.csv(ras_bab_sub , file="ras_baboon_crop_preds_03052021.csv")
 
 
 ###elephants###################
 
 ras_ele <-  read.csv("~/Dropbox/tza_wildlife_conflict/elephantRasterstacktopoints_survext.csv")
+ras_ele <-  read.csv("elephantRasterstacktopoints_survext.csv")
 
 ras_ele$settle_dist_km <- ras_ele$settle_dist/1000
 ras_ele$crop_std <- (ras_ele$crop-mean(dc$crop) )/sd(dc$crop) 
@@ -680,11 +681,11 @@ ras_ele$pred_ele_crop_conflict <- logistic( mean(p$a + p$as[,2]) +
 
 dens(ras_ele$pred_ele_crop_conflict)
 ras_ele_sub <- cbind( ras_ele[1:3] , ras_ele$pred_ele_crop_conflict)
-write.csv(ras_ele_sub , file="raster_data_for_preds/ras_elephant_crop_predsv.csv")
+write.csv(ras_ele_sub , file="ras_elephant_crop_preds_03052021.csv")
 
 #####Vervets baby#####
-ras_ver<-  read.csv("~/Dropbox/tza_wildlife_conflict/vervetRasterstacktopoints_survext.csv")
-#ras_ver<-  read.csv("vervetRasterstacktopoints_survext.csv")
+# ras_ver<-  read.csv("~/Dropbox/tza_wildlife_conflict/vervetRasterstacktopoints_survext.csv")
+ras_ver<-  read.csv("vervetRasterstacktopoints_survext.csv")
 
 ras_ver$settle_dist_km <- ras_ver$settle_dist/1000
 ras_ver$crop_std <- (ras_ver$crop-mean(dc$crop) )/sd(dc$crop) 
@@ -727,7 +728,7 @@ ras_ver$pred_ver_crop_conflict <- logistic( mean(p$a + p$as[,3]) +
 
 dens(ras_ver$pred_ver_crop_conflict)
 ras_ver_sub <- cbind( ras_ver[1:3] , ras_ver$pred_ver_crop_conflict)
-write.csv(ras_ver_sub , file="raster_data_for_preds/ras_vervet_crop_preds.csv")
+write.csv(ras_ver_sub , file="ras_vervet_crop_preds_03052021.csv")
 
 
 ##############other graphs of imporatnce#####
