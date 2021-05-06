@@ -419,3 +419,98 @@ for(j in 1:5){
 # #write.csv( precis(mc17 , depth=2) , file="crop_global_model_medium_paramsv.csv" )
 # #write.csv( precis(mc17 , depth=3) , file="crop_global_model_long_paramsv.csv" )
 # 
+  #####livestock conflict crop predictions
+  ras_leo <-  read.csv("lionRasterstacktopoints_survext2.csv")
+  
+  ras_leo$settle_dist_km <- ras_leo$settle_dist/1000
+  ras_leo$c70_std <- (ras_leo$c70 -mean(dl$c70 ) )/ sd(dl$c70 ) 
+  ras_leo$road_std <- (ras_leo$road -mean(dl$road ) )/ sd(dl$road) 
+  ras_leo$build_dens_std <- (ras_leo$build_dens-mean(dl$build_dens ) )/ sd(dl$build_dens) 
+  ras_leo$gse_slope30m_std <- (ras_leo$gse_slope30m-mean(dl$gse_slope30m) )/sd(dl$gse_slope30m) 
+  ras_leo$settle_dist_km_std <- (ras_leo$settle_dist_km-mean(dl$settle_dist_km ) )/ sd(dl$settle_dist_km) 
+  ras_leo$c2070_std <- (ras_leo$c2070 -mean(dl$c2070 ) )/ sd(dl$c2070 ) 
+  ras_leo$river_std <- (ras_leo$river -mean(dl$river ) )/ sd(dl$river) 
+  ras_leo$species_index <- 2
+  
+  
+  p <- extract.samples(ml_landscape)
+  
+  dpred <- list(
+    village_index=rep(1,nrow(ras_leo)),
+    settle_dist_km_std=ras_leo$settle_dist_km_std,
+    c70_std = ras_leo$c70_std,
+    road_std= ras_leo$road_std,
+    c2070_std = ras_leo$c2070_std,
+    river_std= ras_leo$river_std,
+    build_dens_std=ras_leo$build_dens_std,
+    gse_slope30m_std= ras_leo$gse_slope30m_st,
+    species_index=ras_leo$species_index
+  )
+  
+  ##predict conflict using all raster data and model
+  ras_leo$pred_leo_crop_conflict <-0
+  ras_leo$pred_leo_crop_conflict <- 
+    logistic( mean(p$a + p$as[,2]) + 
+                mean(p$b_SD + p$b_SDs[,2])*dpred$settle_dist_km_std  + 
+                mean(p$b_C70 + p$b_C70s[,2])*dpred$c70_std +
+                mean(p$b_RD + p$b_RDs[,2])*dpred$road_std +
+                mean(p$b_C2070 + p$b_C2070s[,2])*dpred$c2070_std +
+                mean(p$b_RIV + p$b_RIVs[,2])*dpred$river_std +
+                mean(p$b_BD + p$b_BDs[,2])*dpred$build_dens_std +
+                mean(p$b_SL + p$b_SLs[,2])*dpred$gse_slope30m_std   
+    )
+  
+  par(mfrow=c(1,1))
+  dens(ras_leo$pred_leo_crop_conflict)
+  
+  ras_leo_sub <- cbind( ras_leo[1:3] , ras_leo$pred_leo_crop_conflict)
+  write.csv(ras_leo_sub , file="ras_leo_deadstock_preds_03052021.csv")
+  
+  
+  ########hyena
+  # ras_hyena<-  read.csv("~/Dropbox/tza_wildlife_conflict/hyenaRasterstacktopoints_survext2.csv")
+  ras_hyena<-  read.csv("hyenaRasterstacktopoints_survext2.csv")
+  
+  ras_hyena$settle_dist_km <- ras_hyena$settle_dist/1000
+  ras_hyena$c70_std <- (ras_hyena$c70 -mean(dl$c70 ) )/ sd(dl$c70 ) 
+  ras_hyena$road_std <- (ras_hyena$road -mean(dl$road ) )/ sd(dl$road) 
+  ras_hyena$build_dens_std <- (ras_hyena$build_dens-mean(dl$build_dens ) )/ sd(dl$build_dens) 
+  ras_hyena$gse_slope30m_std <- (ras_hyena$gse_slope30m-mean(dl$gse_slope30m) )/sd(dl$gse_slope30m) 
+  ras_hyena$settle_dist_km_std <- (ras_hyena$settle_dist_km-mean(dl$settle_dist_km ) )/ sd(dl$settle_dist_km) 
+  ras_hyena$c2070_std <- (ras_hyena$c2070 -mean(dl$c2070 ) )/ sd(dl$c2070 ) 
+  ras_hyena$river_std <- (ras_hyena$river -mean(dl$river ) )/ sd(dl$river) 
+  ras_hyena$species_index <- 1
+  
+  p <- extract.samples(ml_landscape)
+  
+  dpred <- list(
+    village_index=rep(1,nrow(ras_hyena)),
+    settle_dist_km_std=ras_hyena$settle_dist_km_std,
+    c70_std = ras_hyena$c70_std,
+    road_std= ras_hyena$road_std,
+    c2070_std = ras_hyena$c2070_std,
+    river_std= ras_hyena$river_std,
+    build_dens_std=ras_hyena$build_dens_std,
+    gse_slope30m_std= ras_hyena$gse_slope30m_st,
+    species_index=ras_hyena$species_index
+  )
+  
+  ##predict conflict using all raster data and model
+  ras_hyena$pred_hyena_crop_conflict <-0
+  ras_hyena$pred_hyena_crop_conflict <- 
+    logistic( mean(p$a + p$as[,1]) + 
+                mean(p$b_SD + p$b_SDs[,1])*dpred$settle_dist_km_std  + 
+                mean(p$b_C70 + p$b_C70s[,1])*dpred$c70_std +
+                mean(p$b_RD + p$b_RDs[,1])*dpred$road_std +
+                mean(p$b_C2070 + p$b_C2070s[,1])*dpred$c2070_std +
+                mean(p$b_RIV + p$b_RIVs[,1])*dpred$river_std +
+                mean(p$b_BD + p$b_BDs[,1])*dpred$build_dens_std +
+                mean(p$b_SL + p$b_SLs[,1])*dpred$gse_slope30m_std   
+    )
+  
+  par(mfrow=c(1,1))
+  dens(ras_hyena$pred_hyena_crop_conflict)
+  
+  ras_hyena_sub <- cbind( ras_hyena[1:3] , ras_hyena$pred_hyena_crop_conflict)
+  write.csv(ras_hyena_sub , file="ras_hyena_deadstock_preds_03052021.csv")
+#########jusr sd

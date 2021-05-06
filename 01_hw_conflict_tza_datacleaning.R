@@ -1,7 +1,7 @@
-library('rstan')
-require(rethinking)
+#library('rstan')
+#require(rethinking)
 require(lubridate)
-require(RColorBrewer)
+#require(RColorBrewer)
 require(janitor)
 
 this <- system('hostname', TRUE)
@@ -111,7 +111,7 @@ dc$farm_size_std <- (dc$farm_size -mean(dc$farm_size ) )/sd(dc$farm_size)
 dc$c70_std <- (dc$c70-mean(dc$c70) )/sd(dc$c70)
 dc$c2070_std <- (dc$c2070-mean(dc$c2070) )/sd(dc$c2070)
 dc$village <- as.character(dc$village)
-dc$village[dc$fid==179] <- "Nyamatoke_jklol"
+dc$village[dc$fid==179] <- "Nyamatoke"
 dc$village_index <- as.integer(as.factor(dc$village))
 dc$river_std <- (dc$river-mean(dc$river) )/sd(dc$river) #
 dc$crop_std <- (dc$crop-mean(dc$crop) )/sd(dc$crop) 
@@ -162,7 +162,7 @@ dl$settle_dist_km_std <- (dl$settle_dist_km-mean(dl$settle_dist_km) )/sd(dl$sett
 dl$c70_std <- (dl$c70-mean(dl$c70) )/sd(dl$c70)
 dl$c2070_std <- (dl$c2070-mean(dl$c2070) )/sd(dl$c2070)
 dl$village <- as.character(dl$village)
-dl$village[dl$fid==179] <- "Nyamatoke_jklol"
+dl$village[dl$fid==179] <- "Nyamatoke"
 dl$village_index <- as.integer(as.factor(dl$village))
 dl$river_std <- (dl$river-mean(dl$river) )/sd(dl$river)
 dl$road_std <- (dl$road-mean(dl$road) )/sd(dl$road)
