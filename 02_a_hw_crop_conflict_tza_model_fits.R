@@ -1,5 +1,6 @@
 require(rethinking)
 require(dagitty)
+require(xtable)
 
 ########add in dag########3
 crop_damage_dag <- 
@@ -274,5 +275,31 @@ mc_landscape <- map2stan(
 
 precis(mc_landscape , depth=2)
 
-#look at WAIC for funzies
-compare(mc_bd_min,mc_c2070_min,mc_c70_min,mc_cd_min,mc_fs_min,mc_hh_min,mc_landscape,mc_mp_min,mc_riv_min,mc_sd_min,mc_see_min,mc_slope_min)
+###########tables for paper
+
+#WAIC of crop table
+crop_waic_tab <- compare(mc_bd_min,mc_c2070_min,mc_c70_min,mc_cd_min,mc_fs_min,mc_hh_min,mc_mp_min,mc_riv_min,mc_sd_min,mc_see_min,mc_slope_min,mc_landscape)
+crop_waic_tab
+print(xtable(crop_waic_tab[,1:3], type = "latex"), file = "crop_waic_tab.tex") # save to tex
+
+
+###coef tabs
+source(file="02_c_coeff_table_functions.R")
+
+crop_coeftab <- coeftab(mc_bd_min,mc_c2070_min,mc_c70_min,mc_cd_min,
+                             mc_fs_min,mc_hh_min,mc_mp_min,mc_riv_min,mc_sd_min
+                             ,mc_see_min,mc_slope_min,mc_landscape, digits=2)@coefs
+
+param_names <-crop_coeftab[,0]
+
+dframe <- as.data.frame(crop_coeftab)
+rownames(dframe)
+str(dframe)
+cc <- as.vector(rownames(dframe))
+cc <- gsub("[1]", "_baboon", cc, fixed=TRUE)
+cc <- gsub("[2]", "_elephant", cc, fixed=TRUE)
+cc <- gsub("[3]", "_vervet", cc, fixed=TRUE)
+
+rownames(dframe) <- cc
+
+print(xtable(dframe, type = "latex"), file = "crop_coefs_tab.tex") #print to tex

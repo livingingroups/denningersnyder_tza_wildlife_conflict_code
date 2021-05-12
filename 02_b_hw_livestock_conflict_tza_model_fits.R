@@ -46,6 +46,24 @@ ml_c2070_min <- map2stan(
     
   ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) )
 
+ml_c2070_min_nc <- ulam(
+  alist(
+    #admit ~ binomial(applications,p),
+    #logit(p) <- v_mu[1] + v[dept,1] + (v_mu[2] + v[dept,2])*male,
+    logit(p) <- a + av[village_index] + as[species_index] +  
+      (b_C2070 + b_C2070s[species_index])*c2070_std +
+      (b_BD + b_BDs[species_index])*build_dens_std +
+      (b_SL + b_SLs[species_index])*gse_slope30m_std  ,
+    
+    matrix[dept,2]: v <- t(diag_pre_multiply( sigma , L_Rho ) * z),
+    matrix[2,dept]: z ~ normal( 0 , 1 ),
+    vector[2]: v_mu[[1]] ~ normal(0,4),
+    vector[2]: v_mu[[2]] ~ normal(0,1),
+    vector[2]: sigma ~ half_normal(0,1),
+    cholesky_factor_corr[2]: L_Rho ~ lkj_corr_cholesky( 2 )
+  ),
+  data=UCBadmit )
+
 precis(ml_c2070_min, depth=2)
 
 #c70
@@ -249,6 +267,35 @@ ml_lshXguard_min  <- map2stan(
 
 precis(ml_lshXguard_min , depth=2)
 
-###infor criteria
-compare(ml_bd_min,ml_c2070_min,ml_c70_min,ml_guard_min,ml_landscape,ml_lsh_min,ml_lshXguard_min,ml_riv_min,ml_sd_min,ml_sl_min)
 
+
+###########tables for paper
+
+###info criteria
+#WAIC of livestock table
+livestock_waic_tab <- compare(ml_bd_min , ml_c2070_min , ml_c70_min , ml_riv_min , ml_sd_min , 
+                              ml_sl_min , ml_landscape , ml_guard_min , ml_lsh_min
+                              , ml_lshXguard_min)
+livestock_waic_tab
+print(xtable(livestock_waic_tab[,1:3], type = "latex"), file = "livestock_waic_tab.tex") #print to tex
+
+###coef tabs
+source(file="02_c_coeff_table_functions.R")
+
+livestock_coeftab <- coeftab(ml_bd_min , ml_c2070_min , ml_c70_min , ml_riv_min , ml_sd_min , 
+         ml_sl_min , ml_landscape , ml_guard_min , ml_lsh_min
+         , ml_lshXguard_min , digits=2)@coefs
+
+param_names <-livestock_coeftab[,0]
+
+dframe <- as.data.frame(livestock_coeftab)
+rownames(dframe)
+str(dframe)
+cc <- as.vector(rownames(dframe))
+# cc <- str_replace(cc, "[1]", "hyena")
+# cc <- str_replace(cc, "[2]", "lion")
+cc <- gsub("[1]", "_hyena", cc, fixed=TRUE)
+cc <- gsub("[2]", "_lion", cc, fixed=TRUE)
+rownames(dframe) <- cc
+
+print(xtable(dframe, type = "latex"), file = "livestock_coefs_tab.tex") #print to tex
