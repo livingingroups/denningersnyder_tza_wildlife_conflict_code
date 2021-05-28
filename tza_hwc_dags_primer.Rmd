@@ -124,7 +124,7 @@ plot(ls_conf_yes_guard)
 ```
 
   1) c2070 -> conflict: c2070 is refuge habitat for carnivores who live there more and use c2070 as refuge to avoid detection and forage at night.
-  2) bd -> conflict: building density signifies human presence, and carnivores avoiddense areas. 
+  2) bd -> conflict: building density signifies human presence, and carnivores avoid dense areas. 
   <!-- #signifieds human resence, carnivores avoid dense areas, indirect thru habitat loss -->
   3) bd <-> road: People will build settlements along roads due to access. It is less certain that building density also causes roads, but possible tertiary roads and smaller roads get built to connect dense places.
   <!-- #roads pop up, people build there due to access // less certain building density cases roads? includes primary and secondary, tertiatry is more likely with bd causeing roads -->

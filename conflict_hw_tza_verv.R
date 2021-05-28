@@ -2037,7 +2037,6 @@ write.csv(WAICcropmods , file="WAICcropmodels.csv")
 #compare(mc12.1 , mc12.2, mc12.3, mc12.4, mc12.6 , mc12.7)
 
 # 
-# WAICpredmods <-compare(ml1,ml2,ml3,ml4,ml5,ml6,ml7,ml8,ml9,ml10,ml11,ml13,ml14,ml14.1,ml15,ml16.1)
 # write.csv(WAICpredmods , file="WAICpredmodels.csv")
 
 ##########################################################################
