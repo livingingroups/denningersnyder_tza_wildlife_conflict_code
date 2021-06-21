@@ -1,7 +1,7 @@
 require(rethinking)
 require(dagitty)
 require(xtable)
-
+require(stringr)
 ########add in dag########3
 crop_damage_dag <- 
   dagitty('dag {

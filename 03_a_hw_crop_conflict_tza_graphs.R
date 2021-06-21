@@ -19,7 +19,6 @@ p_crop_params <- list(
   b_CR_baboon = pcr$b_CR + pcr$b_CRs[,1],
   b_C70_baboon = pc70$b_C70 + pc70$b_C70s[,1],
   b_C2070_baboon = pc2070$b_C2070 + pc2070$b_C2070s[,1],
-  #b_RD_baboon = p$b_RD + p$b_RDs[,1],
   b_RIV_baboon = priv$b_RIV + priv$b_RIVs[,1],
   b_SD_baboon = psd$b_SD + psd$b_SDs[,1],
   b_SL_baboon = psl$b_SL + psl$b_SLs[,1],
@@ -31,7 +30,6 @@ p_crop_params <- list(
   b_CR_elephant = pcr$b_CR + pcr$b_CRs[,2],
   b_C70_elephant = pc70$b_C70 + pc70$b_C70s[,2],
   b_C2070_elephant = pc2070$b_C2070 + pc2070$b_C2070s[,2],
-  #b_RD_elephant = p$b_RD + p$b_RDs[,2],
   b_RIV_elephant = priv$b_RIV + priv$b_RIVs[,2],
   b_SD_elephant = psd$b_SD + psd$b_SDs[,2],
   b_SL_elephant = psl$b_SL + psl$b_SLs[,2],
@@ -43,7 +41,6 @@ p_crop_params <- list(
   b_CR_vervet = pcr$b_CR + pcr$b_CRs[,3],
   b_C70_vervet = pc70$b_C70 + pc70$b_C70s[,3],
   b_C2070_vervet = pc2070$b_C2070 + pc2070$b_C2070s[,3],
-  #b_RD_vervet = p$b_RD + p$b_RDs[,3],
   b_RIV_vervet = priv$b_RIV + priv$b_RIVs[,3],
   b_SD_vervet = psd$b_SD + psd$b_SDs[,3],
   b_SL_vervet = psl$b_SL + psl$b_SLs[,3],
@@ -104,7 +101,7 @@ for (i in 1:3){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
   
-  axis( 1 , at= ( seq(from=0 , to=0.25 , by=0.05) - mean(dc$c70))/sd(dc$c70) , labels= seq(from=0 , to=0.25 , by=0.05) )
+  axis( 1 , at= ( seq(from=0 , to=0.45 , by=0.05) - mean(dc$c70))/sd(dc$c70) , labels= seq(from=0 , to=0.45 , by=0.05) )
  dev.off()
 }
 
@@ -145,7 +142,7 @@ for (i in 1:3){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=0 , to=0.7 , by=0.1) - mean(dc$c2070))/sd(dc$c2070) , labels= seq(from=0 , to=0.70 , by=0.1) )
+  axis( 1 , at= ( seq(from=0 , to=1 , by=0.1) - mean(dc$c2070))/sd(dc$c2070) , labels= seq(from=0 , to=1 , by=0.1) )
   dev.off()
 }
 
@@ -526,24 +523,27 @@ for (i in 1:3){
   if(i==1){
     pdf(file = "plots/farmsize_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$farm_size_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size" ,  xaxt='n' , cex.lab=1.3)}
+    plot(dc$baboon_c ~ dc$farm_size_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size" ,  xaxt='n' , cex.lab=1.3)
+    }
   
   if(i==2){
     pdf(file = "plots/farmsize_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$farm_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size",  xaxt='n' , cex.lab=1.3)}
+    plot(dc$elephant_c ~ dc$farm_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size",  xaxt='n' , cex.lab=1.3)
+    }
   
   if(i==3){
     pdf(file = "plots/farmsize_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$vervet_c ~ dc$farm_size_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size",  xaxt='n' , cex.lab=1.3)}
+    plot(dc$vervet_c ~ dc$farm_size_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size (ha)",  xaxt='n' , cex.lab=1.3)
+    }
   
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=0 , to=30 , by=5) - mean(dc$farm_size))/sd(dc$farm_size) , labels= seq(from=0 , to=30 , by=5) )
+  axis( 1 , at= ( seq(from=0 , to=70 , by=5) - mean(dc$farm_size))/sd(dc$farm_size) , labels= seq(from=0 , to=70 , by=5) )
   dev.off()
 }
 

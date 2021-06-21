@@ -148,7 +148,7 @@ for (i in 1:2){
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=0 , to=0.8 , by=0.1) - mean(dl$c2070))/sd(dl$c2070) , labels= seq(from=0 , to=0.8 , by=0.1) )
+  axis( 1 , at= ( seq(from=0 , to=0.8 , by=0.1) - mean(dl$c2070) )/sd(dl$c2070) , labels= seq(from=0 , to=0.8 , by=0.1) )
   dev.off()
 }
 
@@ -170,17 +170,19 @@ for (i in 1:2){
   if(i==1){
     pdf(file = "plots/river_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$hyena_l ~ dl$river_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density", xaxt='n', cex.lab=1.3)}
+    plot(dl$hyena_l ~ dl$river_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density", xaxt='n', cex.lab=1.3)
+    }
   if(i==2){
     pdf(file = "plots/river_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$lion_l ~ dl$river_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density", xaxt='n', cex.lab=1.3)}
+    plot(dl$lion_l ~ dl$river_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density", xaxt='n', cex.lab=1.3)
+    }
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
     lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
   }
-  axis( 1 , at= ( seq(from=0 , to=0.70 , by=0.1) - mean(dl$river))/sd(dl$river) , labels= seq(from=0 , to=0.70 , by=0.1) )
+  axis( 1 , at=(seq(from=0,to=0.06,by=0.01) - mean(dl$river) )/sd(dl$river) , labels= seq(from= 0 , to=0.06 , by=0.01) )
   dev.off()
 }
 
@@ -263,11 +265,11 @@ for (i in 1:2){
   link2 <- link(ml_lsh_min, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/log_livestock head_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/log_livestock_head_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log(number of livestock head)", xaxt='n', cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/log_livestock head_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/log_livestock_head_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log(number of livestock head)", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
