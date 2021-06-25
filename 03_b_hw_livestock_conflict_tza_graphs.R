@@ -41,7 +41,7 @@ points( precis(p_livestock_params)[[1]] , length(precis(p_livestock_params)[[1]]
 dev.off()
 
 ####lets plot per species effects from minimal models
-av_z <- matrix(0,1000,length(unique(dc$village_index))) #need to add zeros in VE to plot main effect
+av_z <- matrix(0,1000,length(unique(dl$village_index))) #need to add zeros in VE to plot main effect
 ylabels=c("probability hyena livestock conflict" , "probability lion livestock conflict")
 colpal=c("red" , "orange")
 ###building density
