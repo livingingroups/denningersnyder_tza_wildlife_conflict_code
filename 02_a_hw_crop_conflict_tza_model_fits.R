@@ -275,6 +275,56 @@ mc_landscape <- map2stan(
 
 precis(mc_landscape , depth=2)
 
+##likely confounded model with mitigation strategy
+##num prot glmm needs HHSize and farm size // Hh drived visual things farm size affects effectiveness of things like fences
+
+mc_np_min <- map2stan(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_NP + b_NPs[species_index])*num_crop_prot_strats_std
+    + (b_FS + b_FSs[species_index])*farm_size_std
+    + (b_HH + b_HHs[species_index])*household_size_std,
+    household_size_std ~ dnorm( mu_x, sigma_x ),
+    c(a,b_HH,b_FS,b_NP) ~ normal( 0 , 1 ),
+    mu_x ~ dnorm( 0 , 3 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_FSs,b_HHs,b_NPs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(sigma_v,sigma_s,sigma_x) ~ dexp(1),
+    Rho ~ dlkjcorr(3)
+  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+
+precis(mc_np_min , depth=2)
+
+mc_cpwf_min <- map2stan(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_WF + b_WFs[species_index])*crop_prot_w_fence 
+    + (b_FS + b_FSs[species_index])*farm_size_std,
+    c(a,b_FS,b_WF) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_FSs,b_WFs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(sigma_v,sigma_s) ~ dexp(1),
+    Rho ~ dlkjcorr(3)
+  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+
+precis(mc_cpwf_min , depth=2)
+
+mc_cpsf_min <- map2stan(
+  alist(
+    conflict ~ binomial(1,p),
+    logit(p) <- a + av[village_index] + as[species_index] 
+    + (b_SF + b_SFs[species_index])*crop_prot_sisal
+    + (b_FS + b_FSs[species_index])*farm_size_std,
+    c(a,b_FS,b_SF) ~ normal( 0 , 1 ),
+    av[village_index] ~ dnorm(0,sigma_v),
+    c(as,b_FSs,b_SFs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(sigma_v,sigma_s) ~ dexp(1),
+    Rho ~ dlkjcorr(3)
+  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+
+precis(mc_cpsf_min , depth=2)
 ###########tables for paper
 
 #WAIC of crop table
@@ -303,3 +353,21 @@ cc <- gsub("[3]", "_vervet", cc, fixed=TRUE)
 rownames(dframe) <- cc
 
 print(xtable(dframe, type = "latex"), file = "crop_coefs_tab.tex") #print to tex
+
+### confound
+
+crop_coeftab_confound <- coeftab(mc_np_min,mc_cpsf_min,mc_cpsf_min, digits=2)@coefs
+param_names <-crop_coeftab_confound[,0]
+
+dframe <- as.data.frame(crop_coeftab_confound)
+rownames(dframe)
+str(dframe)
+cc <- as.vector(rownames(dframe))
+cc <- gsub("[1]", "_baboon", cc, fixed=TRUE)
+cc <- gsub("[2]", "_elephant", cc, fixed=TRUE)
+cc <- gsub("[3]", "_vervet", cc, fixed=TRUE)
+
+rownames(dframe) <- cc
+
+print(xtable(dframe, type = "latex"), file = "crop_coefs_confounds_tab.tex") #print to tex
+

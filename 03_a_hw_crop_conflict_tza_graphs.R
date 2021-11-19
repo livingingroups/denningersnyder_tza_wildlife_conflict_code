@@ -771,3 +771,73 @@ dev.off()
 #write.csv( precis(mc17 , depth=2) , file="crop_global_model_medium_paramsv.csv" )
 #write.csv( precis(mc17 , depth=3) , file="crop_global_model_long_paramsv.csv" )
 
+#####wirefence
+dpred <- list(
+  village_index=rep(1,6),
+  crop_prot_w_fence=c(0,1,0,1,0,1),
+  species_index=c(1,1,2,2,3,3),
+  farm_size_std=rep(0,6)
+)
+
+link2 <- link(mc_cpwf_min, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/wirefence_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
+abline(v=mean(link2[,1]) , col="blue" , lty=2)
+dens(link2[,2] , add=TRUE , col="darkblue")
+abline(v=median(link2[,2]) , col="darkblue" , lty=1)
+legend('topright' , c("no wire fence" , "yes wire fence") , col=c("blue" , "darkblue") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/wirefence_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
+abline(v=mean(link2[,3]) , col="grey" , lty=2)
+dens(link2[,4] , add=TRUE , col="black" )
+abline(v=median(link2[,4]) , col="black" , lty=1)
+legend('topleft' , c("no wire fence" , "yes wire fence") , col=c("grey" , "black") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/wirefence_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
+abline(v=mean(link2[,5]) , col="green" , lty=2)
+dens(link2[,6] , add=TRUE , col="darkgreen" )
+abline(v=median(link2[,6]) , col="darkgreen" , lty=1)
+legend('topleft' , c("no wire fence" , "yes wire fence") , col=c("green" , "darkgreen") , lty=c(2,1))
+dev.off()
+
+
+##sisal
+
+#####sisal
+dpred <- list(
+  village_index=rep(1,6),
+  crop_prot_sisal=c(0,1,0,1,0,1),
+  species_index=c(1,1,2,2,3,3),
+  farm_size_std=rep(0,6)
+)
+
+link2 <- link(mc_cpsf_min, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/sisal_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
+abline(v=mean(link2[,1]) , col="blue" , lty=2)
+dens(link2[,2] , add=TRUE , col="darkblue")
+abline(v=median(link2[,2]) , col="darkblue" , lty=1)
+legend('topright' , c("no sisal" , "yes sisal") , col=c("blue" , "darkblue") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/sisal_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
+abline(v=mean(link2[,3]) , col="grey" , lty=2)
+dens(link2[,4] , add=TRUE , col="black" )
+abline(v=median(link2[,4]) , col="black" , lty=1)
+legend('topleft' , c("no sisal" , "yes sisal") , col=c("grey" , "black") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/sisal_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
+abline(v=mean(link2[,5]) , col="green" , lty=2)
+dens(link2[,6] , add=TRUE , col="darkgreen" )
+abline(v=median(link2[,6]) , col="darkgreen" , lty=1)
+legend('topleft' , c("no sisal" , "yes sisal") , col=c("green" , "darkgreen") , lty=c(2,1))
+dev.off()
+
+
