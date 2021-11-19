@@ -401,6 +401,15 @@ crop_damage_dag2 <-
   slope -> river 
   slope -> road
   slope -> cd
+  farm_size -> crop_prot_music -> crop_damage        
+  farm_size -> crop_prot_w_fence -> crop_damage            
+  farm_size -> crop_prot_sisal -> crop_damage              
+  farm_size -> crop_prot_shout -> crop_damage             
+  farm_size -> crop_prot_fire -> crop_damage              
+  hh_size -> crop_prot_chase -> crop_damage             
+  hh_size -> crop_prot_guard -> crop_damage       
+  farm_size -> crop_prot_guard -> crop_damage     
+  farm_size -> crop_prot_chase -> crop_damage             
   }')
 
 plot(crop_damage_dag2)
@@ -409,4 +418,9 @@ For number of guards, the minimal model `ml_np_min` would include:
 ```{r}
 adjustmentSets( crop_damage_dag2 , exposure="num_protect" , outcome="crop_damage" )
 ```
+For used of wire fences, the minimal model `ml_cpwf_min` would include:
+```{r}
+adjustmentSets( crop_damage_dag2 , exposure="crop_prot_w_fence" , outcome="crop_damage" )
+```
+
 rmarkdown::render("tza_dags_section.Rmd", output_format = latex_document())
