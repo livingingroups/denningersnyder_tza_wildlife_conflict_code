@@ -81,17 +81,17 @@ for (i in 1:3){
   if(i==1){
     pdf(file = "plots/c70_crop_min_conflict_bab.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$c70_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" , xaxt='n' , cex.lab=1.3)
+    plot(dc$baboon_c ~ dc$c70_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover" , xaxt='n' , cex.lab=1.3)
     }
   if(i==2){
     pdf(file = "plots/c70_crop_min_conflict_ele.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" ,  xaxt='n' , cex.lab=1.3)
+    plot(dc$elephant_c ~ dc$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover" ,  xaxt='n' , cex.lab=1.3)
     }
   if(i==3){
    pdf(file = "plots/c70_crop_min_conflict_ver.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$vervet_c ~ dc$c70_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density" ,  xaxt='n' , cex.lab=1.3)
+    plot(dc$vervet_c ~ dc$c70_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover" ,  xaxt='n' , cex.lab=1.3)
     }
   
   pred_mean <- apply(link2 , 2 , mean)
@@ -125,17 +125,17 @@ for (i in 1:3){
   if(i==1){
     pdf(file = "plots/c2070_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$baboon_c ~ dc$c2070_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n' , cex.lab=1.3)
+    plot(dc$baboon_c ~ dc$c2070_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover" , xaxt='n' , cex.lab=1.3)
     }
   if(i==2){
     pdf(file = "plots/c2070_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$elephant_c ~ dc$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n' , cex.lab=1.3)
+    plot(dc$elephant_c ~ dc$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover" , xaxt='n' , cex.lab=1.3)
     }
   if(i==3){
     pdf(file = "plots/c2070_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dc$vervet_c ~ dc$c2070_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n' , cex.lab=1.3)
+    plot(dc$vervet_c ~ dc$c2070_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover" , xaxt='n' , cex.lab=1.3)
     }
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
@@ -207,17 +207,17 @@ for (i in 1:3){
     if(i==1){
       pdf(file = "plots/settle_dist_crop_min_conflict_bab.pdf",   width = 6, height = 6)
       par( mar=c(4,4,1,1)+.1 )
-      plot(dc$baboon_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n',  cex.lab=1.3)}
+      plot(dc$baboon_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlement (km)" , xaxt='n',  cex.lab=1.3)}
     
     if(i==2){
       pdf(file = "plots/settle_dist_crop_min_conflict_ele.pdf",   width = 6, height = 6)
       par( mar=c(4,4,1,1)+.1 )
-      plot(dc$elephant_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n' ,  cex.lab=1.3) }
+      plot(dc$elephant_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlement (km)" , xaxt='n' ,  cex.lab=1.3) }
     
     if(i==3){
       pdf(file = "plots/settle_dist_crop_min_conflict_verv.pdf",   width = 6, height = 6)
       par( mar=c(4,4,1,1)+.1 )
-      plot(dc$vervet_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n' ,  cex.lab=1.3) }
+      plot(dc$vervet_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlement (km)" , xaxt='n' ,  cex.lab=1.3) }
     
     pred_mean <- apply(link2 , 2 , mean)
     lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)

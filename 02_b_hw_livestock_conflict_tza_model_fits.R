@@ -46,24 +46,6 @@ ml_c2070_min <- map2stan(
     
   ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) )
 
-ml_c2070_min_nc <- ulam(
-  alist(
-    #admit ~ binomial(applications,p),
-    #logit(p) <- v_mu[1] + v[dept,1] + (v_mu[2] + v[dept,2])*male,
-    logit(p) <- a + av[village_index] + as[species_index] +  
-      (b_C2070 + b_C2070s[species_index])*c2070_std +
-      (b_BD + b_BDs[species_index])*build_dens_std +
-      (b_SL + b_SLs[species_index])*gse_slope30m_std  ,
-    
-    matrix[dept,2]: v <- t(diag_pre_multiply( sigma , L_Rho ) * z),
-    matrix[2,dept]: z ~ normal( 0 , 1 ),
-    vector[2]: v_mu[[1]] ~ normal(0,4),
-    vector[2]: v_mu[[2]] ~ normal(0,1),
-    vector[2]: sigma ~ half_normal(0,1),
-    cholesky_factor_corr[2]: L_Rho ~ lkj_corr_cholesky( 2 )
-  ),
-  data=UCBadmit )
-
 precis(ml_c2070_min, depth=2)
 
 #c70
@@ -292,8 +274,6 @@ dframe <- as.data.frame(livestock_coeftab)
 rownames(dframe)
 str(dframe)
 cc <- as.vector(rownames(dframe))
-# cc <- str_replace(cc, "[1]", "hyena")
-# cc <- str_replace(cc, "[2]", "lion")
 cc <- gsub("[1]", "_hyena", cc, fixed=TRUE)
 cc <- gsub("[2]", "_lion", cc, fixed=TRUE)
 rownames(dframe) <- cc

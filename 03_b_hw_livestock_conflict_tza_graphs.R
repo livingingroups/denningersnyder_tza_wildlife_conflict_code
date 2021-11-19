@@ -105,11 +105,11 @@ for (i in 1:2){
   if(i==1){
     pdf(file = "plots/c70_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$hyena_l ~ dl$c70_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density", xaxt='n', cex.lab=1.3)}
+    plot(dl$hyena_l ~ dl$c70_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover", xaxt='n', cex.lab=1.3)}
   if(i==2){
     pdf(file = "plots/c70_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$lion_l ~ dl$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="forest/thicket density", xaxt='n', cex.lab=1.3)}
+    plot(dl$lion_l ~ dl$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
@@ -138,11 +138,11 @@ for (i in 1:2){
   if(i==1){
     pdf(file = "plots/c2070_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$hyena_l ~ dl$c2070_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density", xaxt='n', cex.lab=1.3)}
+    plot(dl$hyena_l ~ dl$c2070_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover", xaxt='n', cex.lab=1.3)}
   if(i==2){
     pdf(file = "plots/c2070_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$lion_l ~ dl$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="woodland/open thicket/shrubland density" , xaxt='n', cex.lab=1.3)}
+    plot(dl$lion_l ~ dl$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover" , xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
@@ -203,11 +203,11 @@ for (i in 1:2){
   if(i==1){
     pdf(file = "plots/settle_dist_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$hyena_l ~ dl$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)" , xaxt='n', cex.lab=1.3)}
+    plot(dl$hyena_l ~ dl$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlement (km)" , xaxt='n', cex.lab=1.3)}
   if(i==2){
     pdf(file = "plots/settle_dist_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
-    plot(dl$lion_l ~ dl$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance to settlement edge (km)", xaxt='n', cex.lab=1.3)}
+    plot(dl$lion_l ~ dl$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlement (km)", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
   for (j in sample( c(1:1000) , 100) ){
