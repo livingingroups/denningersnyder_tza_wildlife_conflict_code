@@ -840,4 +840,108 @@ abline(v=median(link2[,6]) , col="darkgreen" , lty=1)
 legend('topleft' , c("no sisal" , "yes sisal") , col=c("green" , "darkgreen") , lty=c(2,1))
 dev.off()
 
+###music
+
+dpred <- list(
+  village_index=rep(1,6),
+  crop_prot_music=c(0,1,0,1,0,1),
+  species_index=c(1,1,2,2,3,3),
+  farm_size_std=rep(0,6)
+)
+
+link2 <- link(mc_cpmusic_min, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/music_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
+abline(v=mean(link2[,1]) , col="blue" , lty=2)
+dens(link2[,2] , add=TRUE , col="darkblue")
+abline(v=median(link2[,2]) , col="darkblue" , lty=1)
+legend('topright' , c("no music" , "yes music") , col=c("blue" , "darkblue") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/music_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
+abline(v=mean(link2[,3]) , col="grey" , lty=2)
+dens(link2[,4] , add=TRUE , col="black" )
+abline(v=median(link2[,4]) , col="black" , lty=1)
+legend('topleft' , c("no music" , "yes music") , col=c("grey" , "black") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/music_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
+abline(v=mean(link2[,5]) , col="green" , lty=2)
+dens(link2[,6] , add=TRUE , col="darkgreen" )
+abline(v=median(link2[,6]) , col="darkgreen" , lty=1)
+legend('topleft' , c("no music" , "yes music") , col=c("green" , "darkgreen") , lty=c(2,1))
+dev.off()
+
+##fire
+
+dpred <- list(
+  village_index=rep(1,6),
+  crop_prot_fire=c(0,1,0,1,0,1),
+  species_index=c(1,1,2,2,3,3),
+  farm_size_std=rep(0,6)
+)
+
+link2 <- link(mc_cpfire_min, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/fire_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
+abline(v=mean(link2[,1]) , col="blue" , lty=2)
+dens(link2[,2] , add=TRUE , col="darkblue")
+abline(v=median(link2[,2]) , col="darkblue" , lty=1)
+legend('topright' , c("no fire" , "yes fire") , col=c("blue" , "darkblue") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/fire_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
+abline(v=mean(link2[,3]) , col="grey" , lty=2)
+dens(link2[,4] , add=TRUE , col="black" )
+abline(v=median(link2[,4]) , col="black" , lty=1)
+legend('topleft' , c("no fire" , "yes fire") , col=c("grey" , "black") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/fire_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
+abline(v=mean(link2[,5]) , col="green" , lty=2)
+dens(link2[,6] , add=TRUE , col="darkgreen" )
+abline(v=median(link2[,6]) , col="darkgreen" , lty=1)
+legend('topleft' , c("no fire" , "yes fire") , col=c("green" , "darkgreen") , lty=c(2,1))
+dev.off()
+
+##guard
+
+dpred <- list(
+  village_index=rep(1,6),
+  crop_prot_guard=c(0,1,0,1,0,1),
+  species_index=c(1,1,2,2,3,3),
+  farm_size_std=rep(0,6)
+)
+
+link2 <- link(mc_cpguard_min, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/guard_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
+abline(v=mean(link2[,1]) , col="blue" , lty=2)
+dens(link2[,2] , add=TRUE , col="darkblue")
+abline(v=median(link2[,2]) , col="darkblue" , lty=1)
+legend('topright' , c("no guard" , "yes guard") , col=c("blue" , "darkblue") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/guard_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
+abline(v=mean(link2[,3]) , col="grey" , lty=2)
+dens(link2[,4] , add=TRUE , col="black" )
+abline(v=median(link2[,4]) , col="black" , lty=1)
+legend('topleft' , c("no guard" , "yes guard") , col=c("grey" , "black") , lty=c(2,1))
+dev.off()
+
+pdf(file = "plots/guard_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
+abline(v=mean(link2[,5]) , col="green" , lty=2)
+dens(link2[,6] , add=TRUE , col="darkgreen" )
+abline(v=median(link2[,6]) , col="darkgreen" , lty=1)
+legend('topleft' , c("no guard" , "yes guard") , col=c("green" , "darkgreen") , lty=c(2,1))
+dev.off()
+
+
+
 
