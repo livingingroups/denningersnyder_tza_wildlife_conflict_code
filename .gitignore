@@ -9,3 +9,6 @@
 #below ignores all files in plots folder
 **/plots
 **/raster_data_for_preds
+tza_hwc_dags_primer.pdf
+conflict_hw_tza_verv.R
+plots.zip
