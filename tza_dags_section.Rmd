@@ -16,7 +16,7 @@ library(dagitty)
 
 One primary aim of the scientific enterprise is to infer causal effects of predictors on outcome variables of inference, to increase our understanding of how systems function. 
 This also can help folks working in applied contexts  such as mitigating human-wildlife conflict make informed interventions. 
-Well-designed experiments are one typical approach to understand causality, but in many cases, like the study presented in this paper, experiments would be not feasible or unethical. 
+Well-designed experiments are one typical approach to understand causality, but in many cases, like the study presented in this paper, experiments would be not feasible or ethical. 
 
 Many common approaches in statistical inference, such as multivariate regression, do not make any claims about causality, and statistical information flows bidirectionally between outcome variable and predictors. 
 Researchers are often concerned about the effect of predictor, X, on an outcome variable, Y.  
@@ -46,24 +46,24 @@ The answer to these questions informs us what to include or exclude in our stati
 Our experience is that researchers often will say X causes Y, when in reality there is a middle step that is implied or ignored.
 Researchers can use their knowledge of their study systems to propose a DAG or DAGs, and they should justify the thinking behind each direct causal arrow.
 Assuming a DAG is true, we can use it to inform which regressions we run to make the most reliable inferences about the effect of X on Y.
-A critic of research may also make propose a different DAG, which might suggest that a different analysis should be run, or that the question may not be reliably answered at all. 
+A critic of research may also propose a different DAG, which might suggest that a different analysis should be run, or that the question may not be reliably answered at all. 
 
 # Drawing a DAG
 
 To draw a DAG, we first consider all of the variables of interest in the system (ideally those that can and cannot be measured). 
-We typically want to known the effect of a treatment/predictor/exposure on an outcome variable. 
+We typically want to know the effect of a treatment/predictor/exposure on an outcome variable. 
 If we think X, our predictor, directly causes Y, we draw an arrow from X to Y
 
 This arrow implies a direct causal relationship between X and Y. 
 Something has a causal relationship if the natural process determining Y is *directly influenced* by the status of X. 
 However, an arrow X → Y only represents the part of the causal effect that is not mediated by any of the other variables in the DAG. 
 If one is sure X does not directly mediate Y, an arrow can be excluded. 
-One must also ensure that causes come before effects, and X preceeds Y. 
+One must also ensure that causes come before effects, and X precedes Y. 
 In instances where this is not the case, and there are bidirectional arrows between X and Y we violate this assumption and need an experiment or time series of treatments on outcomes.
 
-## Crop Wildlife Conflict DAG
+## Wildlife Induced Crop Damage DAG
 
-Below is our DAG for understanding what causes crop conflict in the Greater Grumeti Ecosystem Area. This is an `.Rmd` version of Figure 2 in the main text.
+Below is our DAG for understanding what causes crop damage by wildlife in the GSME. This is an `.Rmd` version of Figure 2 in the main text.
 
 ```{r crop damage dag}
 crop_damage_dag <- 
@@ -102,63 +102,63 @@ plot(crop_damage_dag)
 ```
 
 ### Reasoning for direct causal effects
-1. c2070 -> crop_damage: c2070 is habitat refuge for crop raiders. More habitat could mean there are more places to hide, or less habitat could mean that they are forced to raid crops more. 
+1. c2070 -> crop_damage: c2070 is refuge habitat for wildlife. More habitat could mean there are more places to hide, or less habitat could mean that they are forced to utilize cropland more. 
 
-2. c70 -> crop_damage: c70 is habitat refuge for crop raiders. More habitat could mean there are more places to hide, or less habitat could mean that they are forced to raid crops more. 
+2. c70 -> crop_damage: c70 is habitat refuge for wildlife. More habitat could mean there are more places to hide, or less habitat could mean that they are forced to utilize cropland more. 
 
-3. river -> c70: The presence of water in rivers creates conditions where c70 classified lands grow.
+3. river -> c70: The presence of water in rivers creates conditions for forest (variable c70). In this system forest is exclusively associated with riparian habitat.
 
-4. river -> crop_damage: Animals dwell near rivers, and are likely to cause conflict at places near them as a consequence.
+4. river -> crop_damage: Animals dwell near rivers, and are likely to cause damage at places near them as a consequence.
 
-5. months_planted -> crop_damage: The more time there are crops in the field, the more likely conflict will be observed.
+5. months_planted -> crop_damage: The more time there are crops in the field, the more likely damage will be observed.
 
 6. farm_size -> crop_damage: That larger the farm, the more available crops are, and the more likely they will get damaged.
 
-7. farm_size -> num_protect: Farm size influences the type of protection, which influences the number of strategies used. This is really an indirect pathway.
+7. farm_size -> num_protect: Farm size influences the type of protection strategies employed, which influences the number of strategies used. This is really an indirect pathway.
 
-8. num_protect -> crop_damage: Using a range of strategies may reduce crop raiding.
+8. num_protect -> crop_damage: Using a range of strategies may reduce crop damage.
 
 9. crop_damage -> num_protect: Farmers with crop damage may try lots of new crop strategies out of desperation.
 
 10. hh_size -> num_protect: Larger households engage more effort in protection.
 
-11. hh_size -> farm_size: More available people to work fields, makes it possible to have a larger farm.
+11. hh_size -> farm_size: More available people may indicate greater availability of labor, making it possible to have a larger farm.
 
 12. hh_size -> crop_damage: Animals avoid fields with more human activity.
 
 13. farm_size -> num_protect: Larger farms employ more protection strategies, particularly things like fences etc. that do not require person hours (i.e. guards).
 
-14. see_field -> crop_damage: Farmers that see their field can react quickly and minimize damage.
+14. see_field -> crop_damage: Farmers that see their field can react quickly and minimize damage or prevent wildlife from accessing their fields. Due to closer proximity, may also be more likely to spend more time protecting fields.
 
 15. road -> bd: People will build settlements along roads due to access. It is less certain that building density also causes roads, but possible tertiary roads and smaller roads get built to connect dense places. However, the layer we used to estimate road density measure is primary roads.
 
-16. bd -> crop_damage: Building density attracts and deters different crop raiders (i.e. vervets vs. elephants).
+16. bd -> crop_damage: Building density attracts and deters different wildlife species (i.e. vervets vs. elephants).
 
 17. bd -> c2070: Construction of buildings causes loss in c2070 and changes classification probability.
 
 18. bd -> c70: Construction of buildings causes loss in c70 and changes classification probability.
 
-19. sd -> bd: Cities expand toward protected areas, less dense at edges. 500m buffer & preservation mean that density is lower right next to protected area.
+19. sd -> bd: Cities expand toward protected areas, settlements are less dense at edges. 500m buffer zones adjacent to PAs in Tanzania mean that settlement density is lower right next to protected area.
 
-20. sd -> crop_damage: Different animals have different risk tolerances, some venture far from protected area.
+20. sd -> crop_damage: Different animals have different risk tolerances, some venture far from protected area, while others will avoid human settlements.
 
 21. cd -> c70: Increased crop density and land conversion means there is less likely to be c70.
 
 22. cd -> c2070: Increased crop density and land conversion means there is less likely to be c2070.
 
-23. cd -> crop_damage: More beneficial to raid areas with a higher density of crops.
+23. cd -> crop_damage: Crops are more accessible and it may be more beneficial to raid areas with a higher density of crops.
 
 24. slope -> bd: More houses are built on less hilly land for ease of construction and material transport.
 
 25. slope -> crop_damage: Elephants don't like traveling on hills, so less likely to damage farms on slopes.
 
-26. slope -> c2070: 2070 is more likely on hillsides either due to the difficulty require in cutting it down, or ecological conditions conducive to forest growth.
+26. slope -> c2070: 2070 is more likely on hillsides either due to the difficulty required in cutting trees down, lower suitability for conversion to ag, or ecological conditions conducive to forest growth.
 
 27. slope -> river: Water flows down hills and rivers and water sources are likely to be in places with smaller slopes. 
 
 28. slope -> road:  Slope influences where roads are built. Roads are preferentially built in easier, less hilly places and lower mountain passes.
 
-29. slope -> cd: Crops are more densely planted in flat areas (less runoff, easier to plant things close together.
+29. slope -> cd: Crops are more densely planted in flat areas (less runoff, easier to plant things close together).
 
 ### Building GLMMs from DAGs
 Using the `dagitty` pacakge in `R` we can use the `adjustmentSets` function to help us understand what are the minimal number of covariates we need to include in a model to reliably estimate the effect of a predictor on crop raiding.
@@ -334,37 +334,37 @@ plot(ls_conf_yes_guard)
 
 We justify our direct causal relationships as follows:
 
-1. c2070 -> conflict: c2070 is refuge habitat for carnivores who live there more and use c2070 as refuge to avoid detection and forage at night.
+1. c2070 -> conflict: c2070 is refuge habitat for carnivores, carnivores use c2070 as refuge to avoid detection and for shade.
 
-2. bd -> conflict: Building density signifies human presence, and carnivores avoid dense areas. 
+2. bd -> conflict: Building density signifies human presence, and carnivores may avoid or be attracted to these areas depending on risk tolerance. 
 
 3. bd <-> road: People will build settlements along roads due to access. Roads also make it easier to build settlements and transport people and materials.
 
-4. c70 -> conflict: c70 is refuge habitat for predators, i.e. riparian zone and dense thickets. Loss of c70, causes loss of habitat and can increase conflict.
+4. c70 -> conflict: c70 is refuge habitat for wildlife. More habitat could mean there are more places to hide, or less habitat could mean that wildlife are forced to utilize converted areas more often. 
 
-5. hh_size -> lsh: Larger households are often multi-generational, which means they have more capital which is often invested in cattle.
+5. hh_size -> lsh: Larger households are often multi-generational, which means they have more capital to invest in cattle.
 
 6. hh_size -> guards: The more people in the house, the more there are available to act as guards.
 
-7. lsh -> conflict: The greater number of cattle there are to eat, the more likely they will be predated. 
+7. lsh -> conflict: The greater number of cattle that are present, the more likely that predators will encounter them / have access to livestock. 
 
-8. river -> c70: Rivers are habitat for vegetation communities classified as c2070.
+8. river -> c70: The presence of water in rivers creates conditions for forest (variable c70). In this system forest is exclusively associated with riparian habitat.
 
-9. river -> conflict: Animals need water to live, may raid more when less water available.
+9. river -> conflict: Predators are dependent on water, depredation reported to occur near permanent water sources during the dry season.
 
-10. sd -> bd: Laws in place to prevent people from building within a 500m buffer of reserve, so they build elsewhere. People prefer to build away from PA, and really only do so out of necessity.
+10. sd -> bd: Cities expand toward protected areas, settlements are less dense at edges. 500m buffer zones adjacent to PAs in Tanzania mean that settlement density is lower right next to protected area.
 
-11. sd -> conflict: Some species prefer to be in PA, and are only likely raid farms close to boundaries. Others venture out to raid farms.
+11. sd -> conflict: Different animals have different risk tolerances, some venture far from protected area, while others will avoid human settlements
 
 12. bd -> c70: Construction of buildings causes loss in c70 and changes classification probability
 
 13. bd -> c2070: Construction of buildings causes loss in c2070 and changes classification probability
 
-14. guards <-> conflict: Guards in theory reduce conflict if effective. That is their point. However, due to conflict, farmers may be more inclined to hire guards. To break this bidirectional arrow, one could randomly apply numbers of guards to people's herds, prevent them from changing it, and measure conflict. However, this is unethical. Instead, one would need to measure conflict levels, or amount of crop loss, as a function of the number of guards introduced, or used at each timestep.
+14. guards <-> conflict: Guards in theory reduce conflict if effective. That is their point. However, due to conflict, livestock owners may be more inclined to hire guards. To break this bidirectional arrow, one could randomly apply numbers of guards to people's herds, prevent them from changing it, and measure conflict. However, this is unethical. Instead, one would need to measure conflict levels, or number of livestock lost, as a function of the number of guards introduced, or used at each timestep.
 
 15. slope -> bd: More houses are built on less hilly land for ease of construction and material transport.
 
-16. slope -> conflict: Some predators travel in hillier areas
+16. slope -> conflict: Predators may avoid (or not) traveling through steeper terrain.
 
 17. slope -> rivers: Water flows down hills and is likely to be in places with decreasing slopes. 
 
@@ -415,7 +415,7 @@ adjustmentSets( ls_conf_yes_guard , exposure="guards" , outcome="conflict" )
 Note the last adjustment set. There is no output. 
 
 ## Measuring effectiveness of interventions using a single time point
-DAGs are a useful tool to understand that we can't make reliable inferences about a protection strategy (number of guards, type of fencing, other farmer behaviors) without a measurement of conflict level before and after an intervention is implemented. Researcher need to design data collection or studies  where this is a single arrow, or a different DAG is implied. Double arrows typically mean we need to break apart the timescale of measurement. Guards cause conflict in that they in theory reduce it. Conflict causes guards because people may get more guards if they have conflict. We need data that measures conflict before and after an intervention to make any sense of their relationship.
+DAGs are a useful tool to understand that we can't make reliable inferences about a protection strategy (number of guards, type of fencing, other farmer behaviors) without a measurement of conflict level before and after an intervention is implemented. Researcher need to design data collection or studies  where this is a single arrow, or a different DAG is implied. Double arrows typically mean we need to break apart the timescale of measurement. Guards cause conflict in that they in theory reduce it. Conflict causes guards because people may get more guards if they experience conflict. We need data that measures conflict before and after an intervention to make any sense of their relationship.
 
 <!-- ### Alternative DAGs without Bidirectional Arrows. -->
 <!-- ```{r livestock dag no double} -->
