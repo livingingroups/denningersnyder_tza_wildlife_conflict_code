@@ -35,6 +35,13 @@ crop_damage_dag <-
   slope -> cd
   }')
 
+##drop charachters fro ease of model
+
+dc_nochar <- within(dc, rm("village", "species","household_size" )) # so stan is not upset by charachters
+dc_nona <- within(dc, rm("village", "species" , "household_size" , "household_size_std")) # so stan is not upset by charachters and NA in HHsize
+nrow(dc)==nrow(dc_nochar) #should be true
+nrow(dc)==nrow(dc_nona) #shold be true
+
 ########new crop models post dags##########
 adjustmentSets( crop_damage_dag , exposure="c2070" , outcome="crop_damage" , type="minimal")
 
@@ -53,7 +60,7 @@ mc_c2070_min <- map2stan(
       c(sigma_v,sigma_s) ~ dexp(1),
       Rho ~ dlkjcorr(3)
       
-    ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.95))
+    ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed=434)
 
 precis(mc_c2070_min , depth=2)
 
@@ -75,7 +82,7 @@ mc_c70_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.95))
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98), rng_seed=44)
 
 precis(mc_c70_min , depth=2)
 
@@ -93,7 +100,7 @@ mc_cd_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.95))
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 483)
 
 precis(mc_cd_min , depth=2)
 
@@ -115,7 +122,7 @@ mc_riv_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.95))
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) ,  rng_seed = 76)
 
 precis(mc_riv_min , depth=2)
 
@@ -134,7 +141,7 @@ mc_sd_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98),  rng_seed = 349)
 
 precis(mc_sd_min , depth=2)
 
@@ -155,7 +162,7 @@ mc_bd_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.95))
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 729)
 
 precis(mc_bd_min , depth=2)
 
@@ -173,7 +180,7 @@ mc_mp_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 2)
 
 precis(mc_mp_min, depth=2)
 
@@ -191,7 +198,7 @@ mc_see_min <- map2stan(
     c(as,b_SEEs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 894)
 
 precis(mc_see_min, depth=2)
 
@@ -210,7 +217,7 @@ mc_hh_min <- map2stan(
     c(as,b_HHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s,sigma_x) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nochar , chains=4 , cores=4 , iter=3000 , log_lik=TRUE, control=list(adapt_delta=0.98) , rng_seed = 683)
 
 precis(mc_hh_min, depth=2)
 
@@ -221,14 +228,17 @@ mc_fs_min <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] 
-    + (b_FS + b_FSs[species_index])*farm_size_std,
+    + (b_FS + b_FSs[species_index])*farm_size_std + (b_HH + b_HHs[species_index])*household_size_std,
     a ~ normal( 0 , 1 ),
     b_FS ~ normal( 0 , 1 ),
+    household_size_std ~ dnorm( mu_x, sigma_x ),
+    c(a,b_HH,b_FS) ~ dnorm( 0 , 1 ),
+    mu_x ~ dnorm( 0 , 3),
     av[village_index] ~ dnorm(0,sigma_v),
-    c(as,b_FSs)[species_index] ~ dmvnormNC(sigma_s,Rho),
-    c(sigma_v,sigma_s) ~ dexp(1),
+    c(as,b_FSs,b_HHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
+    c(sigma_v,sigma_s,sigma_x) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nochar , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 4894) 
 
 precis(mc_fs_min, depth=2)
 
@@ -246,7 +256,7 @@ mc_slope_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.95))
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 84)
 
 
 precis(mc_slope_min , depth=2)
@@ -270,7 +280,7 @@ mc_landscape <- map2stan(
       c(sigma_v,sigma_s) ~ dexp(1),
       Rho ~ dlkjcorr(3)
       
-    ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,control=list(adapt_delta=0.99))
+    ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99) , rng_seed = 234)
   
 
 precis(mc_landscape , depth=2)
@@ -292,7 +302,7 @@ mc_np_min <- map2stan(
     c(as,b_FSs,b_HHs,b_NPs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s,sigma_x) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nochar, chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 2063)
 
 precis(mc_np_min , depth=2)
 
@@ -307,7 +317,7 @@ mc_cpwf_min <- map2stan(
     c(as,b_FSs,b_WFs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 639)
 
 precis(mc_cpwf_min , depth=2)
 
@@ -322,7 +332,7 @@ mc_cpsf_min <- map2stan(
     c(as,b_FSs,b_SFs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 639)
 
 precis(mc_cpsf_min , depth=2)
 
@@ -338,7 +348,7 @@ mc_cpmusic_min <- map2stan(
     c(as,b_FSs,b_MUSICs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 39)
 
 precis(mc_cpmusic_min , depth=2)
 
@@ -355,7 +365,7 @@ mc_cpchase_min <- map2stan(
     c(as,b_FSs,b_CHASEs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.98) , rng_seed = 639)
 
 precis(mc_cpchase_min , depth=2)
 
@@ -371,13 +381,15 @@ mc_cpguard_min <- map2stan(
     c(as,b_FSs,b_GUARDs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dc , chains=4 , cores=4 , iter=3000 , log_lik=TRUE)
+  ), data=dc_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE, control=list(adapt_delta=0.98) , rng_seed = 639)
 
 precis(mc_cpguard_min , depth=2)
 ###########tables for paper
 
 #WAIC of crop table
-crop_waic_tab <- c##chase
+crop_waic_tab <- compare(mc_bd_min,mc_c2070_min,mc_c70_min,mc_cd_min,mc_fs_min,mc_hh_min,mc_mp_min,mc_riv_min,mc_sd_min,mc_see_min,mc_slope_min,mc_landscape)
+crop_waic_tab
+print(xtable(crop_waic_tab[,1:3], type = "latex"), file = "crop_waic_tab.tex") # save to tex##chase
 
 dpred <- list(
   village_index=rep(1,6),
@@ -386,6 +398,7 @@ dpred <- list(
   farm_size_std=rep(0,6)
 )
 
+av_z <- matrix(0,1000,length(unique(dc$village_index))) #need to add zeros in VE to plot main effect
 link2 <- link(mc_cpchase_min, data=dpred , replace=list(village_index=av_z) )
 pdf(file = "plots/chase_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
 dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
@@ -413,9 +426,7 @@ dev.off()
 
 
 
-ompare(mc_bd_min,mc_c2070_min,mc_c70_min,mc_cd_min,mc_fs_min,mc_hh_min,mc_mp_min,mc_riv_min,mc_sd_min,mc_see_min,mc_slope_min,mc_landscape)
-crop_waic_tab
-print(xtable(crop_waic_tab[,1:3], type = "latex"), file = "crop_waic_tab.tex") # save to tex
+
 
 
 ###coef tabs

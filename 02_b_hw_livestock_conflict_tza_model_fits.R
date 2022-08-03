@@ -1,5 +1,7 @@
 require(rethinking)
 require(dagitty)
+require(xtable)
+require(stringr)
 
 ###add DAG
 
@@ -28,6 +30,12 @@ ls_conf_yes_guard <-
 
 plot(ls_conf_yes_guard)
 
+##clean up NAs and charachters for new map2stan changes
+dl_nochar <- within(dl, rm("village", "species","household_size" )) # so stan is not upset by charachters
+dl_nona <- within(dl, rm("village", "species" , "household_size" , "household_size_std")) # so stan is not upset by charachters and NA in HHsize
+nrow(dl)==nrow(dl_nochar) #should be true
+nrow(dl)==nrow(dl_nona) #shold be true
+
 #c2070
 adjustmentSets( ls_conf_yes_guard , exposure="c2070" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
@@ -44,7 +52,7 @@ ml_c2070_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) )
+  ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=43 )
 
 precis(ml_c2070_min, depth=2)
 
@@ -64,7 +72,7 @@ ml_c70_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
+  ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=423)
 
 precis(ml_c70_min, depth=2)
 
@@ -84,7 +92,7 @@ ml_bd_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) )
+  ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=112)
 
 precis(ml_bd_min, depth=2)
 
@@ -101,7 +109,7 @@ ml_lsh_min <- map2stan(
     c(as,b_LSHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99))
+  ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99) , rng_seed=930)
 
 precis(ml_lsh_min, depth=2)
 
@@ -120,7 +128,7 @@ ml_riv_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
+  ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=2917)
 
 precis(ml_riv_min , depth=2)
 
@@ -138,7 +146,7 @@ ml_sd_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
+  ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=384)
 
 #guards
 adjustmentSets( ls_conf_yes_guard , exposure="guards" , outcome="conflict" , type="minimal") #independent of others should be invariant
@@ -157,7 +165,7 @@ ml_sl_min <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ lkj_corr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99))
+  ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99) , rng_seed=144)
 
 precis(ml_sl_min, depth=2)
 
@@ -179,7 +187,7 @@ ml_landscape <- map2stan(
     c(sigma_v,sigma_s) ~ dexp(1),
     Rho ~ dlkjcorr(3)
     
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99) )
+  ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99) , rng_seed=9 )
 
 precis(ml_landscape , depth=2)
 
@@ -226,7 +234,7 @@ ml_guard_min <- map2stan(
     c(as,b_LSHs,b_HHs,b_GUs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s,sigma_x) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99))
+  ), data=dl_nochar , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99) , rng_seed=434)
 
 precis(ml_guard_min , depth=2)
 
@@ -245,7 +253,7 @@ ml_lshXguard_min  <- map2stan(
     c(as,b_LSHs,b_HHs,b_GUs,b_GUxLSHs)[species_index] ~ dmvnormNC(sigma_s,Rho),
     c(sigma_v,sigma_s,sigma_x) ~ dexp(1),
     Rho ~ dlkjcorr(3)
-  ), data=dl , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99))
+  ), data=dl_nochar , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=83)
 
 precis(ml_lshXguard_min , depth=2)
 
@@ -255,12 +263,15 @@ precis(ml_lshXguard_min , depth=2)
 
 ###info criteria
 #WAIC of livestock table
-livestock_waic_tab <- compare(ml_bd_min , ml_c2070_min , ml_c70_min , ml_riv_min , ml_sd_min , 
-                              ml_sl_min , ml_landscape , ml_guard_min , ml_lsh_min
-                              , ml_lshXguard_min)
+livestock_waic_tab <- compare(ml_bd_min , ml_c2070_min , ml_c70_min , ml_riv_min , 
+                              ml_sd_min , ml_sl_min , ml_landscape , 
+                              ml_guard_min , ml_lsh_min , ml_lshXguard_min)
 livestock_waic_tab
 print(xtable(livestock_waic_tab[,1:3], type = "latex"), file = "livestock_waic_tab.tex") #print to tex
 
+livestock_waic_tab_lscape <- compare(ml_bd_min , ml_c2070_min , ml_c70_min , ml_riv_min , 
+        ml_sd_min , ml_sl_min , ml_landscape) #this for map of preds
+        
 ###coef tabs
 source(file="02_c_coeff_table_functions.R")
 

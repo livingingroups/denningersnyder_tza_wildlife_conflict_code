@@ -1,5 +1,6 @@
 require(rethinking)
 require(RColorBrewer)
+library(stringr)
 ###########dotplots of parameters
 
 pbd <- extract.samples(mc_bd_min)
@@ -51,15 +52,26 @@ p_crop_params <- list(
 )
 plot(precis(p_crop_params))
 
-pdf(file = "plots/crop_conflict_species_parameter_dotplots.pdf",   width = 7, height = 7) 
-plot(precis(p_crop_params))
-points( precis(p_crop_params)[[1]] , length(precis(p_crop_params)[[1]]):1  , col=rep(brewer.pal(11,"Spectral"), 3) , pch=19 , cex=1)
+pdf(file = "plots/crop_conflict_species_parameter_dotplots_huge.pdf",   width = 7, height = 7) 
+  plot(precis(p_crop_params))
+  points( precis(p_crop_params)[[1]] , length(precis(p_crop_params)[[1]]):1  , col=rep(brewer.pal(11,"Spectral"), 3) , pch=19 , cex=1)
 dev.off()
 
+colpal=c("blue" , "grey", "darkgreen")
+
+pdf(file = "plots/crop_conflict_species_parameter_dotplots_.pdf",   width = 10.5, height = 3.5) 
+  par(mfrow = c(1, 3) , mar=c(2,0,2,0) + 0.2 , oma=c(2,4.5,0,0) + 0.2)
+  plot(precis(p_crop_params[1:11]),  labels='' , main="a. baboons" , xlim=c(-2,1 ) , col=colpal[1] )
+  axis(2, at=1:11, labels=str_remove(names(p_crop_params)[1:11] , "_baboon") ,las=2, tck=0 , lty=0 , cex=1.2)
+  plot(precis(p_crop_params[12:22]) , labels='', main="b. elephants", xlim=c(-2,1 ), col=colpal[2])
+  plot(precis(p_crop_params[23:33]) , labels='', main="c. vervets", xlim=c(-2,1 ) , col=colpal[3])
+  mtext('parameter estimate', at=0.5 , side=1, outer=T,cex=1.2,line=0.75)
+dev.off()
+  
+  
 ####lets plot per species effects from minimal models
 av_z <- matrix(0,1000,length(unique(dc$village_index))) #need to add zeros in VE to plot main effect
 ylabels=c("probability baboon crop conflict" , "probability elephant crop conflict","probability vervet crop conflict")
-colpal=c("blue" , "grey", "darkgreen")
 
 #c70
 precis(mc_c70_min)
@@ -207,17 +219,17 @@ for (i in 1:3){
     if(i==1){
       pdf(file = "plots/settle_dist_crop_min_conflict_bab.pdf",   width = 6, height = 6)
       par( mar=c(4,4,1,1)+.1 )
-      plot(dc$baboon_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlement (km)" , xaxt='n',  cex.lab=1.3)}
+      plot(dc$baboon_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlements (km)" , xaxt='n',  cex.lab=1.3)}
     
     if(i==2){
       pdf(file = "plots/settle_dist_crop_min_conflict_ele.pdf",   width = 6, height = 6)
       par( mar=c(4,4,1,1)+.1 )
-      plot(dc$elephant_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlement (km)" , xaxt='n' ,  cex.lab=1.3) }
+      plot(dc$elephant_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlements (km)" , xaxt='n' ,  cex.lab=1.3) }
     
     if(i==3){
       pdf(file = "plots/settle_dist_crop_min_conflict_verv.pdf",   width = 6, height = 6)
       par( mar=c(4,4,1,1)+.1 )
-      plot(dc$vervet_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlement (km)" , xaxt='n' ,  cex.lab=1.3) }
+      plot(dc$vervet_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlements (km)" , xaxt='n' ,  cex.lab=1.3) }
     
     pred_mean <- apply(link2 , 2 , mean)
     lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
@@ -411,111 +423,16 @@ for (i in 1:3){
   dev.off()
 }
 
-###household size trial bug fixin
-
-#extract posterior
-# post <- extract.samples(mc_hh_min)
-# 
-# tracerplot(mc_hh_min , pars=c("b_HH"))
-# tracerplot(mc_hh_min , pars=c("b_HHs"))
-# 
-# hhsimp <- apply(post$household_size_std_impute , 2 , mean) #look at imputed values
-# 
-# plot_seq <- seq(from=min(dc$household_size_std ,  na.rm = TRUE) , to=max(dc$household_size_std, na.rm = TRUE) , length=30)
-# 
-# for (i in 1:3){
-#   
-#   dpred <- list(
-#     village_index=rep(1,30),
-#     household_size_std=plot_seq,
-#     species_index=rep(i,30)
-#   )
-#   
-#   link2 <- link(mc_hh_min, data=dpred , replace=list(village_index=av_z) )
-#   mu.link <- function(household_size_std) logistic(post$a + post$as[,i] + (post$b_HH + post$b_HHs[,i])*household_size_std)
-#   
-#   if(i==1){
-#     par( mar=c(4,4,1,1)+.1 )
-#     pdf(file = "plots/hhsize_crop_min_conflict_bab2.pdf",   width = 6, height = 6) 
-#     plot(dc$baboon_c ~ dc$household_size_std, col=col.alpha(colpal[i], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
-#     points(hhsimp , dc$baboon_c[is.na(dc$household_size_std)==TRUE], pch=1)
-#   
-#   if(i==2){
-#     par( mar=c(4,4,1,1)+.1 )
-#     pdf(file = "plots/hhsize_crop_min_conflict_ele2.pdf",   width = 6, height = 6) 
-#     plot(dc$elephant_c ~ dc$household_size_std , col=col.alpha(colpal[i], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
-#     points(hhsimp , dc$elephant_c[is.na(dc$household_size_std)==TRUE], pch=1)
-#     
-#   if(i==3){
-#     par( mar=c(4,4,1,1)+.1 )
-#     pdf(file = "plots/hhsize_crop_min_conflict_verv2.pdf",   width = 6, height = 6) 
-#     plot(dc$vervet_c ~ dc$household_size_std , col=col.alpha(colpal[i], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
-#     points(hhsimp , dc$vervet_c[is.na(dc$household_size_std)==TRUE], pch=1)
-#     
-#   mu <- sapply( plot_seq  , mu.link )
-#   mu.mean <- apply( mu , 2 , mean)
-#   
-#   pred_mean <- apply(link2 , 2 , mean)
-#   lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=2)
-#   lines( mu.mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
-#   
-#   # for (j in sample( c(1:1000) , 100) ){
-#   #   lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-#   # }
-#   
-#   for (j in sample( c(1:1000) , 100) ){
-#     lines( mu[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-#   }
-#   
-#   axis( 1 , at= ( seq(from=0 , to=30 , by=5) - mean(dc$household_size ,  na.rm = TRUE))/sd(dc$household_size ,  na.rm =TRUE) , labels= seq(from=0 , to=30 , by=5) )
-#  dev.off()
-# }
-
-#########diagnosis attempts
-
-for (i in 1:3){
-  n_sim <- 18
-  plot_seq <- seq(from=min(dc$household_size_std ,  na.rm = TRUE) , to=max(dc$household_size_std, na.rm = TRUE) , length=n_sim)
-  
-  dpred <- list(
-    village_index=rep(1,n_sim),
-    household_size_std=plot_seq,
-    species_index=rep(i,n_sim)
-  )
-  
-  link2 <- link(mc_hh_min, data=dpred , replace=list(village_index=av_z) )
-  mu.link <- function(household_size_std) logistic(post$a + post$as[,i] + (post$b_HH + post$b_HHs[,i])*household_size_std)
-  
-if(i==1){
-  par( mar=c(4,4,1,1)+.1 )
-  plot(dc$baboon_c ~ dc$household_size_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size std",   cex.lab=1.3)}
-
-if(i==2){
-  par( mar=c(4,4,1,1)+.1 )
-  plot(dc$elephant_c ~ dc$household_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size std", cex.lab=1.3)}
-
-if(i==3){
-  par( mar=c(4,4,1,1)+.1 )
-  plot(dc$vervet_c ~ dc$household_size_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size", cex.lab=1.3)}
-
-pred_mean <- apply(link2 , 2 , mean)
-lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
-  for (j in sample( c(1:1000) , 100) ){
-    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
-  }
-}
-
-
 ## farm size
-plot_seq <- seq(from=min(dc$farm_size_std) , to=max(dc$farm_size_std) , length=30)
+plot_seq <- seq(from=min(dc$farm_size_std) , to=max(dc$farm_size_std) , length=18)
 
 for (i in 1:3){
   
   dpred <- list(
-    village_index=rep(1,30),
+    village_index=rep(1,18),
     farm_size_std=plot_seq,
-    household_size_std=rep(0,30),
-    species_index=rep(i,30)
+    household_size_std=rep(0,18),
+    species_index=rep(i,18)
   )
   
   link2 <- link(mc_fs_min, data=dpred , replace=list(village_index=av_z) )
@@ -591,7 +508,7 @@ for (i in 1:3){
 
 ###############baboons
 #ras_bab<-  read.csv("~/Dropbox/tza_wildlife_conflict/baboonRasterstacktopoints_survext.csv")
-ras_bab<-  read.csv("baboonRasterstacktopoints_survext.csv")
+ras_bab<-  read.csv("~/R/tzawc_bigfiles/baboonRasterstacktopoints_survext.csv")
 
 ras_bab$settle_dist_km <- ras_bab$settle_dist/1000
 ras_bab$crop_std <- (ras_bab$crop-mean(dc$crop) )/sd(dc$crop) 
@@ -604,7 +521,15 @@ ras_bab$settle_dist_km_std <- (ras_bab$settle_dist_km-mean(dc$settle_dist_km ) )
 ras_bab$gse_slope30m_std <- (ras_bab$gse_slope30m-mean(dc$gse_slope30m ) )/ sd(dc$gse_slope30m) 
 ras_bab$species_index <- 1
 
-p <- extract.samples(mc_landscape)
+samples_landscape <- round(2000*crop_waic_tab@.Data[[6]][2])#samples of preds for landscape model based on waic values
+samples_bd <- round(2000*crop_waic_tab@.Data[[6]][1])#samples of preds for landscape model based on waic values
+
+pl <- extract.samples(mc_landscape, n=samples_landscape)
+pbd <- extract.samples(mc_bd_min, n=samples_bd)
+str(pl)
+str(pbd)
+
+pl[[1:length(pl)]][1]
 
 dpred <- list(
   village_index=rep(1,nrow(ras_bab)),
@@ -619,16 +544,240 @@ dpred <- list(
   species_index=ras_bab$species_index
 )
 
+
 ##note this is with other variables at mean, excluded b/c standardized so mean in 0, conputationally kwiker
-ras_bab$pred_bab_crop_conflict <- logistic( mean(p$a + p$as[,1]) + 
-                                              mean(p$b_SD + p$b_SDs[,1])*dpred$settle_dist_km_std  + 
-                                              mean(p$b_C70 + p$b_C70s[,1])*dpred$c70_std +
-                                              mean(p$b_C2070 + p$b_C2070s[,1])*dpred$c2070_std +
-                                              mean(p$b_BD + p$b_BDs[,1])*dpred$build_dens_std +
-                                              mean(p$b_RD + p$b_RDs[,1])*dpred$road_std  + 
-                                              mean(p$b_RIV + p$b_RIVs[,1])*dpred$river_std  + 
-                                              mean(p$b_CR + p$b_CRs[,1])*dpred$crop_std  + 
-                                              mean(p$b_SL + p$b_SLs[,1])*dpred$gse_slope30m_std 
+str(pl)
+preds_l_bab <- matrix(data=NA , nrow=length(dpred$settle_dist_km_std ) , ncol=samples_landscape )
+
+for(i in 1:samples_landscape){
+  preds_l_bab[,i] <- logistic( (pl$a[i] + pl$as[i,1]) + 
+                                 (pl$b_SD[i] + pl$b_SDs[i,1])*dpred$settle_dist_km_std  + 
+                                 (pl$b_C70[i] + pl$b_C70s[i,1])*dpred$c70_std +
+                                 (pl$b_C2070[i] + pl$b_C2070s[i,1])*dpred$c2070_std +
+                                 (pl$b_BD[i] + pl$b_BDs[i,1])*dpred$build_dens_std +
+                                 (pl$b_RD[i] + pl$b_RDs[i,1])*dpred$road_std  + 
+                                 (pl$b_RIV[i] + pl$b_RIVs[i,1])*dpred$river_std  + 
+                                 (pl$b_CR[i] + pl$b_CRs[i,1])*dpred$crop_std  + 
+                                 (pl$b_SL[i] + pl$b_SLs[i,1])*dpred$gse_slope30m_std 
+  )
+}
+
+str(preds_l_bab)
+##building dens
+preds_bd_bab <- matrix(data=NA , nrow=length(dpred$settle_dist_km_std ) , ncol=samples_bd )
+
+for(i in 1:samples_bd){
+  preds_bd_bab[,i] <- logistic( (pbd$a[i] + pbd$as[i,1]) + 
+                                 (pbd$b_SD[i] + pbd$b_SDs[i,1])*dpred$settle_dist_km_std  + 
+                                 (pbd$b_BD[i] + pbd$b_BDs[i,1])*dpred$build_dens_std +
+                                 (pbd$b_SL[i] + pbd$b_SLs[i,1])*dpred$gse_slope30m_std 
+  )
+}
+
+str(preds_bd_bab)
+
+preds_bab <- cbind(preds_l_bab,preds_bd_bab) # binds in70 a 200 column prediction jaun
+
+str(preds_bab)
+
+preds_bab_mean <- preds_bab_med <- rep(NA,nrow(preds_bab))
+preds_bab_mean <- apply(preds_bab , 1, mean)
+preds_bab_med <- apply(preds_bab , 1 , median)
+#preds_bab_med <- apply(preds_bab , 1 , HPDI)
+
+dens(preds_bab_med)
+dens(preds_bab_mean)
+
+ras_bab_sub <- cbind( ras_bab[1:3] , preds_bab_mean , preds_bab_med)
+str(ras_bab_sub)
+write.csv(ras_bab_sub , file="ras_baboon_crop_preds_31072022.csv")
+
+#########elephants
+ras_ele<-  read.csv("~/R/tzawc_bigfiles/elephantRasterstacktopoints_survext.csv")
+
+ras_ele$settle_dist_km <- ras_ele$settle_dist/1000
+ras_ele$crop_std <- (ras_ele$crop-mean(dc$crop) )/sd(dc$crop) 
+ras_ele$c70_std <- (ras_ele$c70 -mean(dc$c70 ) )/ sd(dc$c70 ) 
+ras_ele$c2070_std <- (ras_ele$c2070 -mean(dc$c2070 ) )/ sd(dc$c2070 ) 
+ras_ele$river_std <- (ras_ele$river -mean(dc$river ) )/ sd(dc$river) 
+ras_ele$road_std <- (ras_ele$road -mean(dc$road ) )/ sd(dc$road) 
+ras_ele$build_dens_std <- (ras_ele$build_dens-mean(dc$build_dens ) )/ sd(dc$build_dens) 
+ras_ele$settle_dist_km_std <- (ras_ele$settle_dist_km-mean(dc$settle_dist_km ) )/ sd(dc$settle_dist_km)
+ras_ele$gse_slope30m_std <- (ras_ele$gse_slope30m-mean(dc$gse_slope30m ) )/ sd(dc$gse_slope30m) 
+ras_ele$species_index <- 1
+
+samples_landscape <- round(2000*crop_waic_tab@.Data[[6]][2])#samples of preds for landscape model based on waic values
+samples_bd <- round(2000*crop_waic_tab@.Data[[6]][1])#samples of preds for landscape model based on waic values
+
+pl <- extract.samples(mc_landscape, n=samples_landscape)
+pbd <- extract.samples(mc_bd_min, n=samples_bd)
+str(pl)
+str(pbd)
+
+pl[[1:length(pl)]][1]
+
+dpred <- list(
+  village_index=rep(1,nrow(ras_ele)),
+  settle_dist_km_std=ras_ele$settle_dist_km_std,
+  c70_std = ras_ele$c70_std,
+  c2070_std = ras_ele$c2070_std,
+  river_std= ras_ele$river_std,
+  road_std= ras_ele$road_std,
+  build_dens_std=ras_ele$build_dens_std,
+  crop_std= ras_ele$crop_std,
+  gse_slope30m_std= ras_ele$gse_slope30m_std,
+  species_index=ras_ele$species_index
+)
+
+
+##note this is with other variables at mean, excluded b/c standardized so mean in 0, conputationally kwiker
+str(pl)
+preds_l_ele <- matrix(data=NA , nrow=length(dpred$settle_dist_km_std ) , ncol=samples_landscape )
+
+for(i in 1:samples_landscape){
+  preds_l_ele[,i] <- logistic( (pl$a[i] + pl$as[i,2]) + 
+                                 (pl$b_SD[i] + pl$b_SDs[i,2])*dpred$settle_dist_km_std  + 
+                                 (pl$b_C70[i] + pl$b_C70s[i,2])*dpred$c70_std +
+                                 (pl$b_C2070[i] + pl$b_C2070s[i,2])*dpred$c2070_std +
+                                 (pl$b_BD[i] + pl$b_BDs[i,2])*dpred$build_dens_std +
+                                 (pl$b_RD[i] + pl$b_RDs[i,2])*dpred$road_std  + 
+                                 (pl$b_RIV[i] + pl$b_RIVs[i,2])*dpred$river_std  + 
+                                 (pl$b_CR[i] + pl$b_CRs[i,2])*dpred$crop_std  + 
+                                 (pl$b_SL[i] + pl$b_SLs[i,2])*dpred$gse_slope30m_std 
+  )
+}
+
+str(preds_l_ele)
+##building dens
+preds_bd_ele <- matrix(data=NA , nrow=length(dpred$settle_dist_km_std ) , ncol=samples_bd )
+
+for(i in 1:samples_bd){
+  preds_bd_ele[,i] <- logistic( (pbd$a[i] + pbd$as[i,2]) + 
+                                  (pbd$b_SD[i] + pbd$b_SDs[i,2])*dpred$settle_dist_km_std  + 
+                                  (pbd$b_BD[i] + pbd$b_BDs[i,2])*dpred$build_dens_std +
+                                  (pbd$b_SL[i] + pbd$b_SLs[i,2])*dpred$gse_slope30m_std 
+  )
+}
+
+str(preds_bd_ele)
+
+preds_ele <- cbind(preds_l_ele,preds_bd_ele) # binds in70 a 200 column prediction jaun
+
+str(preds_ele)
+#below is old
+preds_ele_mean <- preds_ele_med <- rep(NA,nrow(preds_ele))
+preds_ele_mean <- apply(preds_ele , 1, mean)
+preds_ele_med <- apply(preds_ele , 1 , median)
+
+dens(preds_ele_med)
+dens(preds_ele_mean)
+
+ras_ele_sub <- cbind( ras_ele[1:3] , preds_ele_mean , preds_ele_med)
+str(ras_ele_sub)
+write.csv(ras_ele_sub , file="ras_elephant_crop_preds_31072022.csv")
+
+##vervet
+ras_verv <-  read.csv("~/R/tzawc_bigfiles/vervetRasterstacktopoints_survext.csv")
+
+ras_verv$settle_dist_km <- ras_verv$settle_dist/1000
+ras_verv$crop_std <- (ras_verv$crop-mean(dc$crop) )/sd(dc$crop) 
+ras_verv$c70_std <- (ras_verv$c70 -mean(dc$c70 ) )/ sd(dc$c70 ) 
+ras_verv$c2070_std <- (ras_verv$c2070 -mean(dc$c2070 ) )/ sd(dc$c2070 ) 
+ras_verv$river_std <- (ras_verv$river -mean(dc$river ) )/ sd(dc$river) 
+ras_verv$road_std <- (ras_verv$road -mean(dc$road ) )/ sd(dc$road) 
+ras_verv$build_dens_std <- (ras_verv$build_dens-mean(dc$build_dens ) )/ sd(dc$build_dens) 
+ras_verv$settle_dist_km_std <- (ras_verv$settle_dist_km-mean(dc$settle_dist_km ) )/ sd(dc$settle_dist_km)
+ras_verv$gse_slope30m_std <- (ras_verv$gse_slope30m-mean(dc$gse_slope30m ) )/ sd(dc$gse_slope30m) 
+ras_verv$species_index <- 1
+
+samples_landscape <- round(2000*crop_waic_tab@.Data[[6]][2])#samples of preds for landscape model based on waic values
+samples_bd <- round(2000*crop_waic_tab@.Data[[6]][1])#samples of preds for landscape model based on waic values
+
+pl <- extract.samples(mc_landscape, n=samples_landscape)
+pbd <- extract.samples(mc_bd_min, n=samples_bd)
+str(pl)
+str(pbd)
+
+pl[[1:length(pl)]][1]
+
+dpred <- list(
+  village_index=rep(1,nrow(ras_verv)),
+  settle_dist_km_std=ras_verv$settle_dist_km_std,
+  c70_std = ras_verv$c70_std,
+  c2070_std = ras_verv$c2070_std,
+  river_std= ras_verv$river_std,
+  road_std= ras_verv$road_std,
+  build_dens_std=ras_verv$build_dens_std,
+  crop_std= ras_verv$crop_std,
+  gse_slope30m_std= ras_verv$gse_slope30m_std,
+  species_index=ras_verv$species_index
+)
+
+
+##note this is with other variables at mean, excluded b/c standardized so mean in 0, conputationally kwiker
+str(pl)
+preds_l_verv <- matrix(data=NA , nrow=length(dpred$settle_dist_km_std ) , ncol=samples_landscape )
+
+for(i in 1:samples_landscape){
+  preds_l_verv[,i] <- logistic( (pl$a[i] + pl$as[i,3]) + 
+                                  (pl$b_SD[i] + pl$b_SDs[i,3])*dpred$settle_dist_km_std  + 
+                                  (pl$b_C70[i] + pl$b_C70s[i,3])*dpred$c70_std +
+                                  (pl$b_C2070[i] + pl$b_C2070s[i,3])*dpred$c2070_std +
+                                  (pl$b_BD[i] + pl$b_BDs[i,3])*dpred$build_dens_std +
+                                  (pl$b_RD[i] + pl$b_RDs[i,3])*dpred$road_std  + 
+                                  (pl$b_RIV[i] + pl$b_RIVs[i,3])*dpred$river_std  + 
+                                  (pl$b_CR[i] + pl$b_CRs[i,3])*dpred$crop_std  + 
+                                  (pl$b_SL[i] + pl$b_SLs[i,3])*dpred$gse_slope30m_std 
+  )
+}
+
+str(preds_l_verv)
+##building dens
+preds_bd_verv <- matrix(data=NA , nrow=length(dpred$settle_dist_km_std ) , ncol=samples_bd )
+
+for(i in 1:samples_bd){
+  preds_bd_verv[,i] <- logistic( (pbd$a[i] + pbd$as[i,3]) + 
+                                   (pbd$b_SD[i] + pbd$b_SDs[i,3])*dpred$settle_dist_km_std  + 
+                                   (pbd$b_BD[i] + pbd$b_BDs[i,3])*dpred$build_dens_std +
+                                   (pbd$b_SL[i] + pbd$b_SLs[i,3])*dpred$gse_slope30m_std 
+  )
+}
+
+str(preds_bd_verv)
+
+preds_verv <- cbind(preds_l_verv,preds_bd_verv) # binds in70 a 200 column prediction jaun
+
+str(preds_verv)
+#below is old
+preds_verv_mean <- preds_verv_med <- rep(NA,nrow(preds_verv))
+preds_verv_mean <- apply(preds_verv , 1, mean)
+preds_verv_med <- apply(preds_verv , 1 , median)
+
+dens(preds_verv_med)
+dens(preds_verv_mean)
+
+ras_verv_sub <- cbind( ras_verv[1:3] , preds_verv_mean , preds_verv_med)
+str(ras_verv_sub)
+write.csv(ras_verv_sub , file="ras_vervet_crop_preds_31072022.csv")
+
+
+
+
+
+
+
+
+
+
+preds_l_bab[,i] <- logistic( (pl$a[i] + pl$as[,1]) + 
+                                              (pl$b_SD[i] + pl$b_SDs[i,1])*dpred$settle_dist_km_std  + 
+                                              (pl$b_C70[i] + pl$b_C70s[i,1])*dpred$c70_std +
+                                              (pl$b_C2070[i] + pl$b_C2070s[i,1])*dpred$c2070_std +
+                                              (pl$b_BD[i] + pl$b_BDs[i,1])*dpred$build_dens_std +
+                                              (pl$b_RD[i] + pl$b_RDs[i,1])*dpred$road_std  + 
+                                              (pl$b_RIV[i] + pl$b_RIVs[i,1])*dpred$river_std  + 
+                                              (pl$b_CR[i] + pl$b_CRs[i,1])*dpred$crop_std  + 
+                                              (pl$b_SL[i] + pl$b_SLs[i,1])*dpred$gse_slope30m_std 
 )
 
 dens(ras_bab$pred_bab_crop_conflict)

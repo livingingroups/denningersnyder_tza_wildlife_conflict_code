@@ -1,17 +1,14 @@
-#library('rstan')
-#require(rethinking)
 require(lubridate)
-#require(RColorBrewer)
 require(janitor)
 
-this <- system('hostname', TRUE)
-if (this == "DESKTOP-J9EEJ0L") {
-  dp <- "C:/Users/Kate/Dropbox/R_data/Dis_Prop/LUC/hwc_risk/data"
-} else {
-  dp <- "Brendan or kristen's working directory" ##
-}
-
-setwd(dp) ### set directory
+# this <- system('hostname', TRUE)
+# if (this == "DESKTOP-J9EEJ0L") {
+#   dp <- "C:/Users/Kate/Dropbox/R_data/Dis_Prop/LUC/hwc_risk/data"
+# } else {
+#   dp <- "Brendan or kristen's working directory" ##
+# }
+# 
+# setwd(dp) ### set directory
 
 #hw <- read.csv("C:/Users/Kate/Dropbox/tza_wildlife_conflict/HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
 hw <- read.csv("HWc_surveyClean_extract_envslopbuildALLSPECIESVervet41.csv")
@@ -121,7 +118,7 @@ dc$road_std <- (dc$road-mean(dc$road) )/sd(dc$road)
 dc$months_planted_std <- (dc$months_planted-mean(dc$months_planted) )/sd(dc$months_planted) 
 dc$num_crop_prot_strats_std <- (dc$num_crop_prot_strats-mean(dc$num_crop_prot_strats) )/sd(dc$num_crop_prot_strats) 
 dc$gse_slope30m_std <- (dc$gse_slope30m-mean(dc$gse_slope30m) )/sd(dc$gse_slope30m) 
-gse_slope30m
+
 nrow(dc)
 
 dc$species_index <- as.integer(as.factor(dc$species))
@@ -143,7 +140,6 @@ dl <- dl[dl$species=="lion",]
 dl$guard_ave_day[is.na(dl$guard_ave_day)] <- 0 #replaced NA with zeros, we hAVE INFO THAT THERE WAS GUARDS IN dl$guard_ave_day
 ##we can also look at tj
 nrow(dl)
-#dl <- dl[complete.cases(dl), ] #good to manually check most like
 nrow(dl) #we lose the same 31 household sizes
 
 dL <- dl
