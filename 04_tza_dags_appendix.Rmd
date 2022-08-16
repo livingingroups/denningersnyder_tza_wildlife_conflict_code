@@ -1,7 +1,7 @@
 ---
-title: "Appendix 1:  The influence of landscape features and household characteristics on risk of crop and livestock damage in the western Serengeti"
+title: "Appendix 1:  Differentiated drivers in wildlife-induced damage necessitate species-specific mitigation strategies in the western Serengeti, Tanzania"
 author: "K Denninger Snyder, KM Tiedeman, BJ Barrett, M Kibwe, RJ Hijmans and G Wittemeyer"
-date: "9 June 2022"
+date: "16 August 2022"
 output: pdf_document
 bibliography: AllReference.bib
 link-citations: true
@@ -417,102 +417,4 @@ Note the last adjustment set. There is no output.
 ## Measuring effectiveness of interventions using a single time point
 DAGs are a useful tool to understand that we can't make reliable inferences about a protection strategy (number of guards, type of fencing, other farmer behaviors) without a measurement of conflict level before and after an intervention is implemented. Researcher need to design data collection or studies  where this is a single arrow, or a different DAG is implied. Double arrows typically mean we need to break apart the timescale of measurement. Guards cause conflict in that they in theory reduce it. Conflict causes guards because people may get more guards if they experience conflict. We need data that measures conflict before and after an intervention to make any sense of their relationship.
 
-<!-- ### Alternative DAGs without Bidirectional Arrows. -->
-<!-- ```{r livestock dag no double} -->
-<!-- ls_conf_yes_guard2 <-  -->
-<!--   dagitty('dag { -->
-<!--   c2070 -> conflict -->
-<!--   bd -> conflict  -->
-<!--   bd <-> road  -->
-<!--   c70 -> conflict  -->
-<!--   hh_size -> guards  -->
-<!--   hh_size -> lsh  -->
-<!--   lsh -> conflict  -->
-<!--   river -> c70  -->
-<!--   river -> conflict  -->
-<!--   sd -> bd  -->
-<!--   sd -> conflict -->
-<!--   bd -> c70 -->
-<!--   bd -> c2070 -->
-<!--   guards -> conflict  -->
-<!--   slope -> bd  -->
-<!--   slope -> conflict -->
-<!--   slope -> c2070  -->
-<!--   slope -> river  -->
-<!--   slope -> road  -->
-<!-- }') -->
-
-<!-- plot(ls_conf_yes_guard2) -->
-<!-- ``` -->
-<!-- For number of guards, the minimal model `ml_guards_min` would include: -->
-<!-- ```{r} -->
-<!-- adjustmentSets( ls_conf_yes_guard2 , exposure="guards" , outcome="conflict" ) -->
-<!-- ``` -->
-
-<!-- For number of guards, the minimal model `ml_lsh_min` would include: -->
-<!-- ```{r} -->
-<!-- adjustmentSets( ls_conf_yes_guard2 , exposure="lsh" , outcome="conflict" ) -->
-<!-- ``` -->
-<!-- ```{r crop damage dag 2} -->
-<!-- crop_damage_dag2 <-  -->
-<!--   dagitty('dag { -->
-<!--   c2070 -> crop_damage -->
-<!--   c70 -> crop_damage -->
-<!--   river -> c70 -->
-<!--   river -> crop_damage -->
-<!--   months_planted -> crop_damage -->
-<!--   farm_size -> crop_damage -->
-<!--   farm_size -> num_protect -->
-<!--   num_protect -> crop_damage -->
-<!--   hh_size -> num_protect -->
-<!--   hh_size -> farm_size -->
-<!--   hh_size -> crop_damage -->
-<!--   see_field -> crop_damage -->
-<!--   road <-> bd -->
-<!--   bd -> crop_damage -->
-<!--   bd -> c2070 -->
-<!--   bd -> c70 -->
-<!--   sd -> bd -->
-<!--   sd -> crop_damage -->
-<!--   cd -> c70 -->
-<!--   cd -> c2070 -->
-<!--   cd -> crop_damage -->
-<!--   slope -> bd  -->
-<!--   slope -> crop_damage -->
-<!--   slope -> c2070  -->
-<!--   slope -> river  -->
-<!--   slope -> road -->
-<!--   slope -> cd -->
-<!--   farm_size -> crop_prot_music -> crop_damage         -->
-<!--   farm_size -> crop_prot_w_fence -> crop_damage             -->
-<!--   farm_size -> crop_prot_sisal -> crop_damage               -->
-<!--   farm_size -> crop_prot_shout -> crop_damage              -->
-<!--   farm_size -> crop_prot_fire -> crop_damage               -->
-<!--   hh_size -> crop_prot_chase -> crop_damage              -->
-<!--   hh_size -> crop_prot_guard -> crop_damage        -->
-<!--   farm_size -> crop_prot_guard -> crop_damage      -->
-<!--   farm_size -> crop_prot_chase -> crop_damage              -->
-<!--   }') -->
-
-<!-- plot(crop_damage_dag2) -->
-<!-- ``` -->
-<!-- For number of guards, the minimal model `ml_np_min` would include: -->
-<!-- ```{r} -->
-<!-- adjustmentSets( crop_damage_dag2 , exposure="num_protect" , outcome="crop_damage" ) -->
-<!-- ``` -->
-<!-- For used of wire fences, the minimal model `ml_cpwf_min` would include: -->
-<!-- ```{r} -->
-<!-- adjustmentSets( crop_damage_dag2 , exposure="crop_prot_w_fence" , outcome="crop_damage" ) -->
-<!-- ``` -->
-
-<!-- rmarkdown::render("tza_dags_section.Rmd", output_format = latex_document()) -->
-<!-- pandoc -s  /Users/sifaka/Documents/tza_wildlife_conflict/tza_dags_section.md -o /Users/sifaka/Documents/tza_wildlife_conflict/tza_dags_section.tex -->
-
-<!-- /Users/sifaka/Documents/tza_wildlife_conflict/tza_dags_section.Rmd -->
-
-<!-- knit('tza_dags_section.Rmd')  -->
-
-
-
-<!--  -o report.tex -->
-
+## References
