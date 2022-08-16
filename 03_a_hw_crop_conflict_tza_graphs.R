@@ -3,17 +3,19 @@ require(RColorBrewer)
 library(stringr)
 ###########dotplots of parameters
 
-pbd <- extract.samples(mc_bd_min)
-pcr <- extract.samples(mc_cd_min)
-pc70 <- extract.samples(mc_c70_min)
-pc2070 <- extract.samples(mc_c2070_min)
-priv <- extract.samples(mc_riv_min)
-psd <- extract.samples(mc_sd_min)
-psl <- extract.samples(mc_slope_min)
-pfs <- extract.samples(mc_fs_min)
-phh <- extract.samples(mc_hh_min)
-psee <- extract.samples(mc_see_min)
-pmp <- extract.samples(mc_mp_min)
+pbd <- extract.samples(mc_bd)
+pcr <- extract.samples(mc_cd)
+pc70 <- extract.samples(mc_c70)
+pc2070 <- extract.samples(mc_c2070)
+priv <- extract.samples(mc_riv)
+psd <- extract.samples(mc_sd)
+psl <- extract.samples(mc_slope)
+pfs <- extract.samples(mc_fs)
+phh <- extract.samples(mc_hh)
+psee <- extract.samples(mc_see)
+pmp <- extract.samples(mc_mp)
+pnp <- extract.samples(mc_np)
+
 
 p_crop_params <- list(
   b_BD_baboon = pbd$b_BD + pbd$b_BDs[,1],
@@ -27,6 +29,7 @@ p_crop_params <- list(
   b_HH_baboon = phh$b_HH + phh$b_HHs[,1],
   b_SEE_baboon = psee$b_SEE + psee$b_SEEs[,1],
   b_MP_baboon = pmp$b_MP + pmp$b_MPs[,1],
+  b_NP_baboon = pnp$b_NP + pnp$b_NPs[,1],
   b_BD_elephant = pbd$b_BD + pbd$b_BDs[,2],
   b_CR_elephant = pcr$b_CR + pcr$b_CRs[,2],
   b_C70_elephant = pc70$b_C70 + pc70$b_C70s[,2],
@@ -38,6 +41,7 @@ p_crop_params <- list(
   b_HH_elephant = phh$b_HH + phh$b_HHs[,2],
   b_SEE_elephant = psee$b_SEE + psee$b_SEEs[,2],
   b_MP_elephant = pmp$b_MP + pmp$b_MPs[,2],
+  b_NP_elephant = pnp$b_NP + pnp$b_NPs[,2],
   b_BD_vervet = pbd$b_BD + pbd$b_BDs[,3],
   b_CR_vervet = pcr$b_CR + pcr$b_CRs[,3],
   b_C70_vervet = pc70$b_C70 + pc70$b_C70s[,3],
@@ -48,7 +52,9 @@ p_crop_params <- list(
   b_FS_vervet = pfs$b_FS + pfs$b_FSs[,3],
   b_HH_vervet = phh$b_HH + phh$b_HHs[,3],
   b_SEE_vervet = psee$b_SEE + psee$b_SEEs[,3],
-  b_MP_vervet = pmp$b_MP + pmp$b_MPs[,3]
+  b_MP_vervet = pmp$b_MP + pmp$b_MPs[,3],
+  b_NP_vervet = pnp$b_NP + pnp$b_NPs[,3]
+  
 )
 plot(precis(p_crop_params))
 
@@ -58,13 +64,15 @@ pdf(file = "plots/crop_conflict_species_parameter_dotplots_huge.pdf",   width = 
 dev.off()
 
 colpal=c("blue" , "grey", "darkgreen")
-
+label <- str_remove(names(p_crop_params)[1:12] , "_baboon")
+str(label)
+label[12] <- "b_NP*"
 pdf(file = "plots/crop_conflict_species_parameter_dotplots_.pdf",   width = 10.5, height = 3.5) 
   par(mfrow = c(1, 3) , mar=c(2,0,2,0) + 0.2 , oma=c(2,4.5,0,0) + 0.2)
-  plot(precis(p_crop_params[1:11]),  labels='' , main="a. baboons" , xlim=c(-2,1 ) , col=colpal[1] )
-  axis(2, at=1:11, labels=str_remove(names(p_crop_params)[1:11] , "_baboon") ,las=2, tck=0 , lty=0 , cex=1.2)
-  plot(precis(p_crop_params[12:22]) , labels='', main="b. elephants", xlim=c(-2,1 ), col=colpal[2])
-  plot(precis(p_crop_params[23:33]) , labels='', main="c. vervets", xlim=c(-2,1 ) , col=colpal[3])
+  plot(precis(p_crop_params[1:12]),  labels='' , main="a. baboons" , xlim=c(-2,2 ) , col=colpal[1] )
+  axis(2, at=12:1, labels=label ,las=2, tck=0 , lty=0 , cex=1.2)
+  plot(precis(p_crop_params[13:24]) , labels='', main="b. elephants", xlim=c(-2,2 ), col=colpal[2])
+  plot(precis(p_crop_params[25:36]) , labels='', main="c. vervets", xlim=c(-2,2 ) , col=colpal[3])
   mtext('parameter estimate', at=0.5 , side=1, outer=T,cex=1.2,line=0.75)
 dev.off()
   
@@ -74,7 +82,7 @@ av_z <- matrix(0,1000,length(unique(dc$village_index))) #need to add zeros in VE
 ylabels=c("probability baboon crop conflict" , "probability elephant crop conflict","probability vervet crop conflict")
 
 #c70
-precis(mc_c70_min)
+precis(mc_c70)
 
 plot_seq <- seq(from=min(dc$c70_std) , to=max(dc$c70_std) , length=30)
 
@@ -89,19 +97,19 @@ for (i in 1:3){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc_c70_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_c70, data=dpred , replace=list(village_index=av_z) )
   if(i==1){
-    pdf(file = "plots/c70_crop_min_conflict_bab.pdf",   width = 6, height = 6)
+    pdf(file = "plots/c70_crop_conflict_bab.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$c70_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover" , xaxt='n' , cex.lab=1.3)
     }
   if(i==2){
-    pdf(file = "plots/c70_crop_min_conflict_ele.pdf",   width = 6, height = 6)
+    pdf(file = "plots/c70_crop_conflict_ele.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover" ,  xaxt='n' , cex.lab=1.3)
     }
   if(i==3){
-   pdf(file = "plots/c70_crop_min_conflict_ver.pdf",   width = 6, height = 6)
+   pdf(file = "plots/c70_crop_conflict_ver.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$c70_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover" ,  xaxt='n' , cex.lab=1.3)
     }
@@ -119,7 +127,7 @@ for (i in 1:3){
 
 
 #c2070
-precis(mc_c2070_min , depth=2)
+precis(mc_c2070 , depth=2)
 plot_seq <- seq(from=min(dc$c2070_std) , to=max(dc$c2070_std) , length=30)
 
 for (i in 1:3){
@@ -133,19 +141,19 @@ for (i in 1:3){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc_c2070_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_c2070, data=dpred , replace=list(village_index=av_z) )
   if(i==1){
-    pdf(file = "plots/c2070_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/c2070_crop_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$c2070_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover" , xaxt='n' , cex.lab=1.3)
     }
   if(i==2){
-    pdf(file = "plots/c2070_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/c2070_crop_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover" , xaxt='n' , cex.lab=1.3)
     }
   if(i==3){
-    pdf(file = "plots/c2070_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/c2070_crop_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$c2070_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover" , xaxt='n' , cex.lab=1.3)
     }
@@ -159,7 +167,7 @@ for (i in 1:3){
 }
 
 ###crop density
-precis(mc_cd_min)
+precis(mc_cd)
 plot_seq <- seq(from=min(dc$crop_std) , to=max(dc$crop_std) , length=30)
 
 for (i in 1:3){
@@ -172,22 +180,22 @@ for (i in 1:3){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc_cd_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_cd, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/crop_dens_crop_min_conflict_bab.pdf",   width = 6, height = 6)
+    pdf(file = "plots/crop_dens_crop_conflict_bab.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$crop_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density" ,  xaxt='n' , cex.lab=1.3)
     }
   
   if(i==2){
-    pdf(file = "plots/crop_dens_crop_min_conflict_ele.pdf",   width = 6, height = 6)
+    pdf(file = "plots/crop_dens_crop_conflict_ele.pdf",   width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$crop_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density" ,  xaxt='n' , cex.lab=1.3)
     }
   
   if(i==3){
-    pdf(file = "plots/crop_dens_crop_min_conflict_ver.pdf",width = 6, height = 6)
+    pdf(file = "plots/crop_dens_crop_conflict_ver.pdf",width = 6, height = 6)
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$crop_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="crop density" ,  xaxt='n' , cex.lab=1.3)
     }
@@ -202,7 +210,7 @@ for (i in 1:3){
 }
 
 ##settlement distance
-precis(mc_sd_min)
+precis(mc_sd)
 plot_seq <- seq(from=min(dc$settle_dist_km_std) , to=max(dc$settle_dist_km_std) , length=30)
 
 for (i in 1:3){
@@ -213,21 +221,21 @@ for (i in 1:3){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc_sd_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_sd, data=dpred , replace=list(village_index=av_z) )
   par( mar=c(4,4,1,1)+.1 )
     
     if(i==1){
-      pdf(file = "plots/settle_dist_crop_min_conflict_bab.pdf",   width = 6, height = 6)
+      pdf(file = "plots/settle_dist_crop_conflict_bab.pdf",   width = 6, height = 6)
       par( mar=c(4,4,1,1)+.1 )
       plot(dc$baboon_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlements (km)" , xaxt='n',  cex.lab=1.3)}
     
     if(i==2){
-      pdf(file = "plots/settle_dist_crop_min_conflict_ele.pdf",   width = 6, height = 6)
+      pdf(file = "plots/settle_dist_crop_conflict_ele.pdf",   width = 6, height = 6)
       par( mar=c(4,4,1,1)+.1 )
       plot(dc$elephant_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlements (km)" , xaxt='n' ,  cex.lab=1.3) }
     
     if(i==3){
-      pdf(file = "plots/settle_dist_crop_min_conflict_verv.pdf",   width = 6, height = 6)
+      pdf(file = "plots/settle_dist_crop_conflict_verv.pdf",   width = 6, height = 6)
       par( mar=c(4,4,1,1)+.1 )
       plot(dc$vervet_c ~ dc$settle_dist_km_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlements (km)" , xaxt='n' ,  cex.lab=1.3) }
     
@@ -242,7 +250,7 @@ for (i in 1:3){
 }
 
 ###rivers
-precis(mc_riv_min)
+precis(mc_riv)
 plot_seq <- seq(from=min(dc$river_std) , to=max(dc$river_std) , length=30)
 
 for (i in 1:3){
@@ -254,17 +262,17 @@ for (i in 1:3){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc_riv_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_riv, data=dpred , replace=list(village_index=av_z) )
   if(i==1){
-    pdf(file = "plots/river_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/river_crop_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$river_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density" ,  xaxt='n' , cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/river_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/river_crop_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$river_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density" ,  xaxt='n' , cex.lab=1.3)}
   if(i==3){
-    pdf(file = "plots/river_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/river_crop_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$river_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density" ,  xaxt='n' , cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
@@ -289,18 +297,18 @@ for (i in 1:3){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc_bd_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_bd, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/build_dens_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/build_dens_crop_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$build_dens_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density" ,  xaxt='n' , cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/build_dens_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/build_dens_crop_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$build_dens_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density" ,  xaxt='n' , cex.lab=1.3)}
   if(i==3){
-    pdf(file = "plots/build_dens_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/build_dens_crop_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$build_dens_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density" ,  xaxt='n' , cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
@@ -323,20 +331,20 @@ for (i in 1:3){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc_mp_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_mp, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/monthsplanted_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/monthsplanted_crop_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$months_planted_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="months planted",  xaxt='n' , cex.lab=1.3 )}
   
   if(i==2){
-    pdf(file = "plots/monthsplanted_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/monthsplanted_crop_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$months_planted_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="months planted" ,  xaxt='n' , cex.lab=1.3)}
   
   if(i==3){
-    pdf(file = "plots/monthsplanted_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/monthsplanted_crop_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$months_planted_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="months planted" ,  xaxt='n' , cex.lab=1.3)}  
   
@@ -356,8 +364,8 @@ dpred <- list(
   species_index=c(1,1,2,2,3,3)
 )
 
-link2 <- link(mc_see_min, data=dpred , replace=list(village_index=av_z) )
-pdf(file = "plots/seefield_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+link2 <- link(mc_see, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/seefield_crop_conflict_bab.pdf",   width = 6, height = 6) 
   dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
   abline(v=mean(link2[,1]) , col="blue" , lty=2)
   dens(link2[,2] , add=TRUE , col="darkblue")
@@ -365,7 +373,7 @@ pdf(file = "plots/seefield_crop_min_conflict_bab.pdf",   width = 6, height = 6)
   legend('topright' , c("can't see field" , "see field") , col=c("blue" , "darkblue") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/seefield_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+pdf(file = "plots/seefield_crop_conflict_ele.pdf",   width = 6, height = 6) 
   dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
   abline(v=mean(link2[,3]) , col="grey" , lty=2)
   dens(link2[,4] , add=TRUE , col="black" )
@@ -373,7 +381,7 @@ pdf(file = "plots/seefield_crop_min_conflict_ele.pdf",   width = 6, height = 6)
 legend('topleft' , c("can't see field" , "see field") , col=c("grey" , "black") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/seefield_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+pdf(file = "plots/seefield_crop_conflict_verv.pdf",   width = 6, height = 6) 
   dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
   abline(v=mean(link2[,5]) , col="green" , lty=2)
   dens(link2[,6] , add=TRUE , col="darkgreen" )
@@ -382,7 +390,7 @@ pdf(file = "plots/seefield_crop_min_conflict_verv.pdf",   width = 6, height = 6)
 dev.off()
 
 ###household size
-post <- extract.samples(mc_hh_min)
+post <- extract.samples(mc_hh)
 plot_seq <- seq(from=min(dc$household_size_std ,  na.rm = TRUE) , to=max(dc$household_size_std, na.rm = TRUE) , length=18)
 hhsimp <- apply(post$household_size_std_impute , 2 , mean) #look at imputed values
 
@@ -394,22 +402,22 @@ for (i in 1:3){
     species_index=rep(i,18)
   )
   
-  link2 <- link(mc_hh_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_hh, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/hhsize_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/hhsize_crop_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$household_size_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
     points(hhsimp , dc$baboon_c[is.na(dc$household_size_std)==TRUE], pch=1)
   
   if(i==2){
-    pdf(file = "plots/hhsize_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/hhsize_crop_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$household_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
     points(hhsimp , dc$ele_c[is.na(dc$household_size_std)==TRUE], pch=1)
     
   if(i==3){
-    pdf(file = "plots/hhsize_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/hhsize_crop_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$household_size_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="household size",  xaxt='n' , cex.lab=1.3)}
     points(hhsimp , dc$vervet_c[is.na(dc$household_size_std)==TRUE], pch=1)
@@ -435,22 +443,22 @@ for (i in 1:3){
     species_index=rep(i,18)
   )
   
-  link2 <- link(mc_fs_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_fs, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/farmsize_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/farmsize_crop_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$farm_size_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size" ,  xaxt='n' , cex.lab=1.3)
     }
   
   if(i==2){
-    pdf(file = "plots/farmsize_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/farmsize_crop_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$farm_size_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size",  xaxt='n' , cex.lab=1.3)
     }
   
   if(i==3){
-    pdf(file = "plots/farmsize_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/farmsize_crop_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$farm_size_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="farm size (ha)",  xaxt='n' , cex.lab=1.3)
     }
@@ -476,20 +484,20 @@ for (i in 1:3){
     species_index=rep(i,30)
   )
   
-  link2 <- link(mc_slope_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(mc_slope, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/slope_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/slope_crop_conflict_bab.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$baboon_c ~ dc$gse_slope30m_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density" ,  xaxt='n' , cex.lab=1.3)}
   
   if(i==2){
-    pdf(file = "plots/slope_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/slope_crop_conflict_ele.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$elephant_c ~ dc$gse_slope30m_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density",  xaxt='n' , cex.lab=1.3)}
   
   if(i==3){
-    pdf(file = "plots/slope_crop_min_conflict_ver.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/slope_crop_conflict_ver.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dc$vervet_c ~ dc$gse_slope30m_std , col=col.alpha(colpal[3], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density",  xaxt='n' , cex.lab=1.3)}
   
@@ -525,7 +533,7 @@ samples_landscape <- round(2000*crop_waic_tab@.Data[[6]][2])#samples of preds fo
 samples_bd <- round(2000*crop_waic_tab@.Data[[6]][1])#samples of preds for landscape model based on waic values
 
 pl <- extract.samples(mc_landscape, n=samples_landscape)
-pbd <- extract.samples(mc_bd_min, n=samples_bd)
+pbd <- extract.samples(mc_bd, n=samples_bd)
 str(pl)
 str(pbd)
 
@@ -610,7 +618,7 @@ samples_landscape <- round(2000*crop_waic_tab@.Data[[6]][2])#samples of preds fo
 samples_bd <- round(2000*crop_waic_tab@.Data[[6]][1])#samples of preds for landscape model based on waic values
 
 pl <- extract.samples(mc_landscape, n=samples_landscape)
-pbd <- extract.samples(mc_bd_min, n=samples_bd)
+pbd <- extract.samples(mc_bd, n=samples_bd)
 str(pl)
 str(pbd)
 
@@ -694,7 +702,7 @@ samples_landscape <- round(2000*crop_waic_tab@.Data[[6]][2])#samples of preds fo
 samples_bd <- round(2000*crop_waic_tab@.Data[[6]][1])#samples of preds for landscape model based on waic values
 
 pl <- extract.samples(mc_landscape, n=samples_landscape)
-pbd <- extract.samples(mc_bd_min, n=samples_bd)
+pbd <- extract.samples(mc_bd, n=samples_bd)
 str(pl)
 str(pbd)
 
@@ -928,8 +936,8 @@ dpred <- list(
   farm_size_std=rep(0,6)
 )
 
-link2 <- link(mc_cpwf_min, data=dpred , replace=list(village_index=av_z) )
-pdf(file = "plots/wirefence_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+link2 <- link(mc_cpwf, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/wirefence_crop_conflict_bab.pdf",   width = 6, height = 6) 
 dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
 abline(v=mean(link2[,1]) , col="blue" , lty=2)
 dens(link2[,2] , add=TRUE , col="darkblue")
@@ -937,7 +945,7 @@ abline(v=median(link2[,2]) , col="darkblue" , lty=1)
 legend('topright' , c("no wire fence" , "yes wire fence") , col=c("blue" , "darkblue") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/wirefence_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+pdf(file = "plots/wirefence_crop_conflict_ele.pdf",   width = 6, height = 6) 
 dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
 abline(v=mean(link2[,3]) , col="grey" , lty=2)
 dens(link2[,4] , add=TRUE , col="black" )
@@ -945,7 +953,7 @@ abline(v=median(link2[,4]) , col="black" , lty=1)
 legend('topleft' , c("no wire fence" , "yes wire fence") , col=c("grey" , "black") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/wirefence_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+pdf(file = "plots/wirefence_crop_conflict_verv.pdf",   width = 6, height = 6) 
 dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
 abline(v=mean(link2[,5]) , col="green" , lty=2)
 dens(link2[,6] , add=TRUE , col="darkgreen" )
@@ -964,8 +972,8 @@ dpred <- list(
   farm_size_std=rep(0,6)
 )
 
-link2 <- link(mc_cpsf_min, data=dpred , replace=list(village_index=av_z) )
-pdf(file = "plots/sisal_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+link2 <- link(mc_cpsf, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/sisal_crop_conflict_bab.pdf",   width = 6, height = 6) 
 dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
 abline(v=mean(link2[,1]) , col="blue" , lty=2)
 dens(link2[,2] , add=TRUE , col="darkblue")
@@ -973,7 +981,7 @@ abline(v=median(link2[,2]) , col="darkblue" , lty=1)
 legend('topright' , c("no sisal" , "yes sisal") , col=c("blue" , "darkblue") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/sisal_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+pdf(file = "plots/sisal_crop_conflict_ele.pdf",   width = 6, height = 6) 
 dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
 abline(v=mean(link2[,3]) , col="grey" , lty=2)
 dens(link2[,4] , add=TRUE , col="black" )
@@ -981,7 +989,7 @@ abline(v=median(link2[,4]) , col="black" , lty=1)
 legend('topleft' , c("no sisal" , "yes sisal") , col=c("grey" , "black") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/sisal_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+pdf(file = "plots/sisal_crop_conflict_verv.pdf",   width = 6, height = 6) 
 dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
 abline(v=mean(link2[,5]) , col="green" , lty=2)
 dens(link2[,6] , add=TRUE , col="darkgreen" )
@@ -998,8 +1006,8 @@ dpred <- list(
   farm_size_std=rep(0,6)
 )
 
-link2 <- link(mc_cpmusic_min, data=dpred , replace=list(village_index=av_z) )
-pdf(file = "plots/music_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+link2 <- link(mc_cpmusic, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/music_crop_conflict_bab.pdf",   width = 6, height = 6) 
 dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
 abline(v=mean(link2[,1]) , col="blue" , lty=2)
 dens(link2[,2] , add=TRUE , col="darkblue")
@@ -1007,7 +1015,7 @@ abline(v=median(link2[,2]) , col="darkblue" , lty=1)
 legend('topright' , c("no music" , "yes music") , col=c("blue" , "darkblue") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/music_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+pdf(file = "plots/music_crop_conflict_ele.pdf",   width = 6, height = 6) 
 dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
 abline(v=mean(link2[,3]) , col="grey" , lty=2)
 dens(link2[,4] , add=TRUE , col="black" )
@@ -1015,7 +1023,7 @@ abline(v=median(link2[,4]) , col="black" , lty=1)
 legend('topleft' , c("no music" , "yes music") , col=c("grey" , "black") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/music_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+pdf(file = "plots/music_crop_conflict_verv.pdf",   width = 6, height = 6) 
 dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
 abline(v=mean(link2[,5]) , col="green" , lty=2)
 dens(link2[,6] , add=TRUE , col="darkgreen" )
@@ -1032,8 +1040,8 @@ dpred <- list(
   farm_size_std=rep(0,6)
 )
 
-link2 <- link(mc_cpfire_min, data=dpred , replace=list(village_index=av_z) )
-pdf(file = "plots/fire_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+link2 <- link(mc_cpfire, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/fire_crop_conflict_bab.pdf",   width = 6, height = 6) 
 dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
 abline(v=mean(link2[,1]) , col="blue" , lty=2)
 dens(link2[,2] , add=TRUE , col="darkblue")
@@ -1041,7 +1049,7 @@ abline(v=median(link2[,2]) , col="darkblue" , lty=1)
 legend('topright' , c("no fire" , "yes fire") , col=c("blue" , "darkblue") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/fire_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+pdf(file = "plots/fire_crop_conflict_ele.pdf",   width = 6, height = 6) 
 dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
 abline(v=mean(link2[,3]) , col="grey" , lty=2)
 dens(link2[,4] , add=TRUE , col="black" )
@@ -1049,7 +1057,7 @@ abline(v=median(link2[,4]) , col="black" , lty=1)
 legend('topleft' , c("no fire" , "yes fire") , col=c("grey" , "black") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/fire_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+pdf(file = "plots/fire_crop_conflict_verv.pdf",   width = 6, height = 6) 
 dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
 abline(v=mean(link2[,5]) , col="green" , lty=2)
 dens(link2[,6] , add=TRUE , col="darkgreen" )
@@ -1066,8 +1074,8 @@ dpred <- list(
   farm_size_std=rep(0,6)
 )
 
-link2 <- link(mc_cpguard_min, data=dpred , replace=list(village_index=av_z) )
-pdf(file = "plots/guard_crop_min_conflict_bab.pdf",   width = 6, height = 6) 
+link2 <- link(mc_cpguard, data=dpred , replace=list(village_index=av_z) )
+pdf(file = "plots/guard_crop_conflict_bab.pdf",   width = 6, height = 6) 
 dens(link2[,1] , lty=2 , col="blue" , ylim=c(0,15) , xlim=c(0,0.5) , main="probability baboon crop conflict")
 abline(v=mean(link2[,1]) , col="blue" , lty=2)
 dens(link2[,2] , add=TRUE , col="darkblue")
@@ -1075,7 +1083,7 @@ abline(v=median(link2[,2]) , col="darkblue" , lty=1)
 legend('topright' , c("no guard" , "yes guard") , col=c("blue" , "darkblue") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/guard_crop_min_conflict_ele.pdf",   width = 6, height = 6) 
+pdf(file = "plots/guard_crop_conflict_ele.pdf",   width = 6, height = 6) 
 dens(link2[,3] , lty=2 , col="grey" , ylim=c(0,15) , xlim=c(0.2,1) , main="probability elephant crop conflict")
 abline(v=mean(link2[,3]) , col="grey" , lty=2)
 dens(link2[,4] , add=TRUE , col="black" )
@@ -1083,7 +1091,7 @@ abline(v=median(link2[,4]) , col="black" , lty=1)
 legend('topleft' , c("no guard" , "yes guard") , col=c("grey" , "black") , lty=c(2,1))
 dev.off()
 
-pdf(file = "plots/guard_crop_min_conflict_verv.pdf",   width = 6, height = 6) 
+pdf(file = "plots/guard_crop_conflict_verv.pdf",   width = 6, height = 6) 
 dens(link2[,5] , lty=2 , col="green" , ylim=c(0,15) , xlim=c(0,0.6) , main="probability vervet crop conflict")
 abline(v=mean(link2[,5]) , col="green" , lty=2)
 dens(link2[,6] , add=TRUE , col="darkgreen" )
@@ -1092,5 +1100,45 @@ legend('topleft' , c("no guard" , "yes guard") , col=c("green" , "darkgreen") , 
 dev.off()
 
 
+#num_prot
+plot_seq <- seq(from=min(dc$num_crop_prot_strats_std) , to=max(dc$num_crop_prot_strats_std) , length=18)
 
+for (i in 1:3){
+  
+  dpred <- list(
+    village_index=rep(1,18),
+    num_crop_prot_strats_std = plot_seq,
+    household_size_std= rep(0,18),
+    farm_size_std= rep(0,18),
+    crop_std= rep(0,18),
+    species_index=rep(i,18)
+  )
+  
+  link2 <- link(mc_np, data=dpred , replace=list(village_index=av_z) )
+  if(i==1){
+    pdf(file = "plots/numprot_crop_conflict_bab.pdf",   width = 6, height = 6)
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$baboon_c ~ dc$num_crop_prot_strats_std, col=col.alpha(colpal[1], 0.05) , pch=19 , ylab=ylabels[i] , xlab="number of crop protection strategies" , xaxt='n' , cex.lab=1.3)
+  }
+  if(i==2){
+    pdf(file = "plots/numprot_crop_conflict_ele.pdf",   width = 6, height = 6)
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$elephant_c ~ dc$num_crop_prot_strats_std , col=col.alpha(colpal[2], 0.05) , pch=19 , ylab=ylabels[i] , xlab="number of crop protection strategies" ,  xaxt='n' , cex.lab=1.3)
+  }
+  if(i==3){
+    pdf(file = "plots/numprot_crop_conflict_ver.pdf",   width = 6, height = 6)
+    par( mar=c(4,4,1,1)+.1 )
+    plot(dc$vervet_c ~ dc$num_crop_prot_strats_std , col=col.alpha(colpal[3], 0.05) , pch=19 , ylab=ylabels[i] , xlab="number of crop protection strategies" ,  xaxt='n' , cex.lab=1.3)
+  }
+  
+  pred_mean <- apply(link2 , 2 , mean)
+  lines(pred_mean ~ plot_seq , lw=2, col=colpal[i] , lty=1)
+  
+  for (j in sample( c(1:1000) , 100) ){
+    lines( link2[j,] ~ plot_seq , lw=3, col=col.alpha(colpal[i], alpha=0.1) , lty=1)
+  }
+  
+  axis( 1 , at= ( seq(from=0 , to=4 , by=1) - mean(dc$num_crop_prot_strats))/sd(dc$num_crop_prot_strats) , labels= seq(from=0 , to=4 , by=1) )
+  dev.off()
+}
 

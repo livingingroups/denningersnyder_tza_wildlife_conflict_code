@@ -39,7 +39,7 @@ nrow(dl)==nrow(dl_nona) #shold be true
 #c2070
 adjustmentSets( ls_conf_yes_guard , exposure="c2070" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
-ml_c2070_min <- map2stan(
+ml_c2070 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] +  
@@ -54,12 +54,12 @@ ml_c2070_min <- map2stan(
     
   ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=43 )
 
-precis(ml_c2070_min, depth=2)
+precis(ml_c2070, depth=2)
 
 #c70
 adjustmentSets( ls_conf_yes_guard , exposure="c70" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
-ml_c70_min <- map2stan(
+ml_c70 <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] +  
@@ -74,12 +74,12 @@ ml_c70_min <- map2stan(
     
   ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=423)
 
-precis(ml_c70_min, depth=2)
+precis(ml_c70, depth=2)
 
 #bd
 adjustmentSets( ls_conf_yes_guard , exposure="bd" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
-ml_bd_min <- map2stan(
+ml_bd <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] +  
@@ -94,12 +94,12 @@ ml_bd_min <- map2stan(
     
   ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=112)
 
-precis(ml_bd_min, depth=2)
+precis(ml_bd, depth=2)
 
 #lsh
 adjustmentSets( ls_conf_yes_guard , exposure="lsh" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
-ml_lsh_min <- map2stan(
+ml_lsh <- map2stan(
   alist(
     conflict  ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index]  + 
@@ -111,12 +111,12 @@ ml_lsh_min <- map2stan(
     Rho ~ dlkjcorr(3)
   ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99) , rng_seed=930)
 
-precis(ml_lsh_min, depth=2)
+precis(ml_lsh, depth=2)
 
 #river
 adjustmentSets( ls_conf_yes_guard , exposure="river" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
-ml_riv_min <- map2stan(
+ml_riv <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] +  
@@ -130,12 +130,12 @@ ml_riv_min <- map2stan(
     
   ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=2917)
 
-precis(ml_riv_min , depth=2)
+precis(ml_riv , depth=2)
 
 #sd
 adjustmentSets( ls_conf_yes_guard , exposure="sd" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
-ml_sd_min <- map2stan(
+ml_sd <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] +  
@@ -154,7 +154,7 @@ adjustmentSets( ls_conf_yes_guard , exposure="guards" , outcome="conflict" , typ
 #slope
 adjustmentSets( ls_conf_yes_guard , exposure="slope" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
-ml_sl_min <- map2stan(
+ml_sl <- map2stan(
   alist(
     conflict ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index] + 
@@ -167,7 +167,7 @@ ml_sl_min <- map2stan(
     
   ), data=dl_nona , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99) , rng_seed=144)
 
-precis(ml_sl_min, depth=2)
+precis(ml_sl, depth=2)
 
 #####landscape all#####
 ml_landscape <- map2stan(
@@ -221,7 +221,7 @@ plot(ls_conf_no_guard)
 adjustmentSets( ls_conf_no_guard , exposure="guards" , outcome="conflict" , type="minimal") #independent of others should be invariant
 
 ####guards
-ml_guard_min <- map2stan(
+ml_guard <- map2stan(
   alist(
     conflict  ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index]  + 
@@ -236,10 +236,10 @@ ml_guard_min <- map2stan(
     Rho ~ dlkjcorr(3)
   ), data=dl_nochar , chains=4 , cores=4 , iter=3000 , log_lik=TRUE , control=list(adapt_delta=0.99) , rng_seed=434)
 
-precis(ml_guard_min , depth=2)
+precis(ml_guard , depth=2)
 
 #######house level w/ interaction
-ml_lshXguard_min  <- map2stan(
+ml_lshXguard  <- map2stan(
   alist(
     conflict  ~ binomial(1,p),
     logit(p) <- a + av[village_index] + as[species_index]  + 
@@ -255,7 +255,7 @@ ml_lshXguard_min  <- map2stan(
     Rho ~ dlkjcorr(3)
   ), data=dl_nochar , chains=4 , cores=4 , iter=3000 , log_lik=TRUE ,  control=list(adapt_delta=0.99) , rng_seed=83)
 
-precis(ml_lshXguard_min , depth=2)
+precis(ml_lshXguard , depth=2)
 
 
 
@@ -263,21 +263,21 @@ precis(ml_lshXguard_min , depth=2)
 
 ###info criteria
 #WAIC of livestock table
-livestock_waic_tab <- compare(ml_bd_min , ml_c2070_min , ml_c70_min , ml_riv_min , 
-                              ml_sd_min , ml_sl_min , ml_landscape , 
-                              ml_guard_min , ml_lsh_min , ml_lshXguard_min)
+livestock_waic_tab <- compare(ml_bd , ml_c2070 , ml_c70 , ml_riv , 
+                              ml_sd , ml_sl , ml_landscape , 
+                              ml_guard , ml_lsh , ml_lshXguard)
 livestock_waic_tab
 print(xtable(livestock_waic_tab[,1:3], type = "latex"), file = "livestock_waic_tab.tex") #print to tex
 
-livestock_waic_tab_lscape <- compare(ml_bd_min , ml_c2070_min , ml_c70_min , ml_riv_min , 
-        ml_sd_min , ml_sl_min , ml_landscape) #this for map of preds
+livestock_waic_tab_lscape <- compare(ml_bd , ml_c2070 , ml_c70 , ml_riv , 
+        ml_sd , ml_sl , ml_landscape) #this for map of preds
         
 ###coef tabs
 source(file="02_c_coeff_table_functions.R")
 
-livestock_coeftab <- coeftab(ml_bd_min , ml_c2070_min , ml_c70_min , ml_riv_min , ml_sd_min , 
-         ml_sl_min , ml_landscape , ml_guard_min , ml_lsh_min
-         , ml_lshXguard_min , digits=2)@coefs
+livestock_coeftab <- coeftab(ml_bd , ml_c2070 , ml_c70 , ml_riv , ml_sd , 
+         ml_sl , ml_landscape , ml_guard , ml_lsh
+         , ml_lshXguard , digits=2)@coefs
 
 param_names <-livestock_coeftab[,0]
 

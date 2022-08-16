@@ -2,15 +2,15 @@ require(rethinking)
 require(RColorBrewer)
 ###########dotplots of parameters
 
-pbd <- extract.samples(ml_bd_min)
-pc70 <- extract.samples(ml_c70_min)
-pc2070 <- extract.samples(ml_c2070_min)
-priv <- extract.samples(ml_riv_min)
-psd <- extract.samples(ml_sd_min)
-psl <- extract.samples(ml_sl_min)
-plsh <- extract.samples(ml_lsh_min)
-pgua <- extract.samples(ml_guard_min)
-pguaXhh <- extract.samples(ml_lshXguard_min)
+pbd <- extract.samples(ml_bd)
+pc70 <- extract.samples(ml_c70)
+pc2070 <- extract.samples(ml_c2070)
+priv <- extract.samples(ml_riv)
+psd <- extract.samples(ml_sd)
+psl <- extract.samples(ml_sl)
+plsh <- extract.samples(ml_lsh)
+pgua <- extract.samples(ml_guard)
+pguaXhh <- extract.samples(ml_lshXguard)
 
 p_livestock_params <- list(
   b_BD_hyena = pbd$b_BD + pbd$b_BDs[,1],
@@ -40,11 +40,15 @@ plot(precis(p_livestock_params))
 points( precis(p_livestock_params)[[1]] , length(precis(p_livestock_params)[[1]]):1  , col=rep(brewer.pal(9,"Spectral"), 3) , pch=19 , cex=1)
 dev.off()
 
+label <- str_remove(names(p_livestock_params)[1:9] , "_hyena")
+label[8]<- "b_GU*"
+label[9]<- "b_GUxLSH*"
+  
 pdf(file = "plots/livestock_conflict_species_parameter_dotplots.pdf",   width = 7, height = 3.5) 
-  par(mfrow = c(1, 2) , mar=c(2,0,2,0) + 0.2 , oma=c(2,5,0,0) + 0.2)
-  plot(precis(p_livestock_params[1:9]),  labels='' , main="a. hyena" , xlim=c(-2.5,2.5 ) , col=colpal[1] )
-  axis(2, at=1:9, labels=str_remove(names(p_livestock_params)[1:9] , "_hyena") ,las=2, tck=0 , lty=0 , cex=1.2)
-  plot(precis(p_livestock_params[10:18]) , labels='', main="b. lion", xlim=c(-2.5,2.5 ), col=colpal[2])
+  par(mfrow = c(1, 2) , mar=c(2,0,2,0) + 0.2 , oma=c(2,5.25,0,0) + 0.2)
+  plot(precis(p_livestock_params[1:9]),  labels='' , main="a. hyenas" , xlim=c(-2.5,2.5 ) , col=colpal[1] )
+  axis(2, at=9:1, labels=label ,las=2, tck=0 , lty=0 , cex=1.2)
+  plot(precis(p_livestock_params[10:18]) , labels='', main="b. lions", xlim=c(-2.5,2.5 ), col=colpal[2])
   mtext('parameter estimate', at=0.5 , side=1, outer=T,cex=1.2,line=0.75)
 dev.off()
 
@@ -53,7 +57,7 @@ av_z <- matrix(0,1000,length(unique(dl$village_index))) #need to add zeros in VE
 ylabels=c("probability hyena livestock conflict" , "probability lion livestock conflict")
 
 ###building density
-precis(ml_bd_min)
+precis(ml_bd)
 
 plot_seq <- seq(from=min(dl$build_dens_std) , to=max(dl$build_dens_std) , length=30)
 
@@ -67,14 +71,14 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(ml_bd_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_bd, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/build_dens_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/build_dens_livestock_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$hyena_l ~ dl$build_dens_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density", xaxt='n', cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/build_dens_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/build_dens_livestock_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$lion_l ~ dl$build_dens_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="building density", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
@@ -87,7 +91,7 @@ for (i in 1:2){
 }
 
 #####cover 70
-precis(ml_c70_min)
+precis(ml_c70)
 plot_seq <- seq(from=min(dl$c70_std) , to=max(dl$c70_std) , length=30)
 av_z <- matrix(0,1000,length(unique(dl$village_index))) #need to add zeros in VE to plot main effect
 
@@ -101,14 +105,14 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(ml_c70_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_c70, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/c70_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/c70_livestock_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$hyena_l ~ dl$c70_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover", xaxt='n', cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/c70_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/c70_livestock_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$lion_l ~ dl$c70_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion densely wooded cover", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
@@ -121,7 +125,7 @@ for (i in 1:2){
 }
 
 #cover 2070
-precis(ml_c2070_min)
+precis(ml_c2070)
 plot_seq <- seq(from=min(dl$c2070_std) , to=max(dl$c2070_std) , length=30)
 
 for (i in 1:2){
@@ -134,14 +138,14 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(ml_c2070_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_c2070, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/c2070_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/c2070_livestock_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$hyena_l ~ dl$c2070_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover", xaxt='n', cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/c2070_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/c2070_livestock_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$lion_l ~ dl$c2070_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="proportion moderately wooded cover" , xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
@@ -154,7 +158,7 @@ for (i in 1:2){
 }
 
 #river
-precis(ml_riv_min)
+precis(ml_riv)
 plot_seq <- seq(from=min(dl$river_std) , to=max(dl$river_std) , length=30)
 
 for (i in 1:2){
@@ -166,15 +170,15 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(ml_riv_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_riv, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/river_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/river_livestock_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$hyena_l ~ dl$river_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density", xaxt='n', cex.lab=1.3)
     }
   if(i==2){
-    pdf(file = "plots/river_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/river_livestock_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$lion_l ~ dl$river_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="river density", xaxt='n', cex.lab=1.3)
     }
@@ -188,7 +192,7 @@ for (i in 1:2){
 }
 
 #settlement distance
-precis(ml_sd_min)
+precis(ml_sd)
 plot_seq <- seq(from=min(dl$settle_dist_km_std) , to=max(dl$settle_dist_km_std) , length=30)
 
 for (i in 1:2){
@@ -199,14 +203,14 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(ml_sd_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_sd, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/settle_dist_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/settle_dist_livestock_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$hyena_l ~ dl$settle_dist_km_std , col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlements (km)" , xaxt='n', cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/settle_dist_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/settle_dist_livestock_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$lion_l ~ dl$settle_dist_km_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="distance into settlement (km)", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
@@ -220,7 +224,7 @@ for (i in 1:2){
 }
 
 #slope
-precis(ml_sl_min)
+precis(ml_sl)
 plot_seq <- seq(from=min(dl$gse_slope30m_std) , to=max(dl$gse_slope30m_std) , length=30)
 
 for (i in 1:2){
@@ -231,14 +235,14 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(ml_sl_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_sl, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/slope30m_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/slope30m_livestock_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$hyena_l ~ dl$gse_slope30m_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density", xaxt='n', cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/slope30m_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/slope30m_livestock_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$lion_l ~ dl$gse_slope30m_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="slope 30m density", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
@@ -252,7 +256,7 @@ for (i in 1:2){
 }
 
 ##lsh
-precis(ml_lsh_min)
+precis(ml_lsh)
 
 plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=30)
 
@@ -263,14 +267,14 @@ for (i in 1:2){
     species_index=rep(i,30)
   )
   
-  link2 <- link(ml_lsh_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_lsh, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/log_livestock_head_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/log_livestock_head_livestock_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$hyena_l ~ dl$log_livestock_head_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log(number of livestock head)", xaxt='n', cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/log_livestock_head_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/log_livestock_head_livestock_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$lion_l ~ dl$log_livestock_head_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log(number of livestock head)", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
@@ -283,7 +287,7 @@ for (i in 1:2){
 }
 
 ###guards
-precis(ml_guard_min)
+precis(ml_guard)
 
 plength <- 15
 plot_seq <- seq(from=min(dl$guard_ave_day_std) , to=max(dl$guard_ave_day_std) , length=plength )
@@ -298,14 +302,14 @@ for (i in 1:2){
     species_index=rep(i,plength )
   )
   
-  link2 <- link(ml_guard_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_guard, data=dpred , replace=list(village_index=av_z) )
   
   if(i==1){
-    pdf(file = "plots/num_guards_livestock_min_conflict_hyena.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/num_guards_livestock_conflict_hyena.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$hyena_l ~ dl$guard_ave_day_std, col=col.alpha(colpal[1], 0.1) , pch=19 , ylab=ylabels[i] , xlab="average number of guards per day", xaxt='n', cex.lab=1.3)}
   if(i==2){
-    pdf(file = "plots/num_guards_livestock_min_conflict_lion.pdf",   width = 6, height = 6) 
+    pdf(file = "plots/num_guards_livestock_conflict_lion.pdf",   width = 6, height = 6) 
     par( mar=c(4,4,1,1)+.1 )
     plot(dl$lion_l ~ dl$guard_ave_day_std , col=col.alpha(colpal[2], 0.1) , pch=19 , ylab=ylabels[i] , xlab="average number of guards per day", xaxt='n', cex.lab=1.3)}
   pred_mean <- apply(link2 , 2 , mean)
@@ -324,7 +328,7 @@ colpal1=colpal1[3:7]
 colpal2=colpal2[3:7]
 plot_seq <- seq(from=min(dl$log_livestock_head_std) , to=max(dl$log_livestock_head_std) , length=plength)
 
-pdf(file = "plots/num_guardsXlsh_livestock_min_conflict_hyena.pdf",   width = 15, height = 3)
+pdf(file = "plots/num_guardsXlsh_livestock_conflict_hyena.pdf",   width = 15, height = 3)
 par(mfrow=c(1,5))
 par( mar=c(4,4,1,1)+.1 )
 
@@ -338,7 +342,7 @@ for(j in 1:5){
     guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , plength)
   )
   
-  link2 <- link(ml_lshXguard_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_lshXguard, data=dpred , replace=list(village_index=av_z) )
   
     plot(dl$hyena_l[dl$guard_ave_day==j-1] ~ dl$log_livestock_head_std[dl$guard_ave_day==j-1], col=col.alpha(colpal1[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log number livestock head", xaxt='n', cex.lab=1.3 , xlim=range(dl$log_livestock_head_std) , ylim=c(0,1))
     title(main=paste("number guards = ", j-1) )
@@ -351,7 +355,7 @@ for(j in 1:5){
 }
 dev.off()
 
-pdf(file = "plots/num_guardsXlsh_livestock_min_conflict_lion.pdf",   width = 15, height = 3)
+pdf(file = "plots/num_guardsXlsh_livestock_conflict_lion.pdf",   width = 15, height = 3)
 par(mfrow=c(1,5))
 par( mar=c(4,4,1,1)+.1 )
 
@@ -365,7 +369,7 @@ for(j in 1:5){
     guard_ave_day_std=rep( sort(unique(dl$guard_ave_day_std))[j] , plength)
   )
   
-  link2 <- link(ml_lshXguard_min, data=dpred , replace=list(village_index=av_z) )
+  link2 <- link(ml_lshXguard, data=dpred , replace=list(village_index=av_z) )
   
     plot(dl$lion_l[dl$guard_ave_day==j-1] ~ dl$log_livestock_head_std[dl$guard_ave_day==j-1] , col=col.alpha(colpal2[j], 0.1) , pch=19 , ylab=ylabels[i] , xlab="log number livestock head", xaxt='n', cex.lab=1.1 , xlim=range(dl$log_livestock_head_std), ylim=c(0,1))
     title(main=paste("number guards = ", j-1) )
@@ -403,8 +407,8 @@ samples_bd <- round(2000*livestock_waic_tab_lscape@.Data[[6]][2])#samples of pre
 samples_sd <- 1 +round(2000*livestock_waic_tab_lscape@.Data[[6]][3])#samples of preds for building density model based on waic values
 
 pl <- extract.samples(ml_landscape, n=samples_landscape)
-pbd <- extract.samples(ml_bd_min, n=samples_bd)
-psd <- extract.samples(ml_sd_min, n=samples_sd)
+pbd <- extract.samples(ml_bd, n=samples_bd)
+psd <- extract.samples(ml_sd, n=samples_sd)
 
 str(pl)
 str(pbd)
@@ -495,8 +499,8 @@ samples_bd <- round(2000*livestock_waic_tab_lscape@.Data[[6]][2])#samples of pre
 samples_sd <- round(2000*livestock_waic_tab_lscape@.Data[[6]][3]) + 1#samples of preds for building density model based on waic values
 
 pl <- extract.samples(ml_landscape, n=samples_landscape)
-pbd <- extract.samples(ml_bd_min, n=samples_bd)
-psd <- extract.samples(ml_sd_min, n=samples_sd)
+pbd <- extract.samples(ml_bd, n=samples_bd)
+psd <- extract.samples(ml_sd, n=samples_sd)
 
 str(pl)
 str(pbd)
