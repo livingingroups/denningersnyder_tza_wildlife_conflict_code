@@ -1,3 +1,7 @@
+# Code and Data Archive:
+
+This is the code and data repo for internl archiving purposes for the paper [Differentiated drivers in wildlife-induced damage necessitate species-specific mitigation strategies in the western Serengeti, Tanzania](https://doi.org/10.1016/j.biocon.2023.110202) by Denninger-Snyder et al, 2023. Kate Tiedeman and Brendan Barrett were the MPI affiliated authors.
+
 ## Data Cleaning
 Code is in `01_hw_conflict_tza_datacleaning.R`
 ## Generalized Linear Models
